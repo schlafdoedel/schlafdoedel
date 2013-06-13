@@ -2,24 +2,29 @@ package com.kg6.schlafdoedel;
 
 import java.util.Date;
 
-import com.kg6.schlafdoedelmaster.R;
+import android.app.Activity;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
+import android.widget.TextView;
+import android.widget.ToggleButton;
+
 import com.kg6.schlafdoedel.custom.Util;
 import com.kg6.schlafdoedel.network.BluetoothConnection;
 import com.kg6.schlafdoedel.network.NetworkConnection;
 import com.kg6.schlafdoedel.network.NetworkConnection.ConnectionType;
 import com.kg6.schlafdoedel.network.NetworkEvent;
-
-import android.os.Bundle;
-import android.app.Activity;
-import android.view.View;
-import android.view.WindowManager;
-import android.view.View.OnClickListener;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
-import android.widget.TextView;
+import com.kg6.schlafdoedelmaster.R;
 
 public class Overview extends Activity implements NetworkEvent {
+	private BluetoothConnection bluetoothConnection;
 	
 	private LinearLayout defaultStatusPanelView;
 
@@ -30,11 +35,71 @@ public class Overview extends Activity implements NetworkEvent {
 		
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
+		addOptionsButtonListener();
+		addBluetoothButtonListener();
+		
 		addDefaultStatusEntry();
 		
-		BluetoothConnection connection = BluetoothConnection.CreateInstance(this);
-		connection.addNetworkEventListener(this);
-		connection.startListening();
+		this.bluetoothConnection = BluetoothConnection.CreateInstance(this);
+		this.bluetoothConnection.addNetworkEventListener(this);
+	}
+	
+	@Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+    	ContextMenu.Create(menu, this);    	
+        return true;
+    }
+	
+	@Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+    	ContextMenu.ManageItemClick(item, this);
+    	return true;
+    }
+	
+	@Override
+	public void onStop() {
+		super.onStop();
+		
+		if(this.bluetoothConnection != null) {
+			try {
+				this.bluetoothConnection.cleanup();
+			} catch (Exception e) {
+				Log.e("Overview.java", "Unable to create Bluetooth connection", e);
+			}
+		}
+	}
+	
+	@Override
+	public void onDestroy() {
+		System.exit(0);
+	}
+
+	private void addOptionsButtonListener() {
+		final Button optionsButton = (Button)findViewById(R.id.optionsButton);
+		
+		optionsButton.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				openOptionsMenu();
+			}
+		});
+	}
+	
+	private void addBluetoothButtonListener() {
+		final ToggleButton toggleButton = (ToggleButton)findViewById(R.id.bluetoothActiveButton);
+		
+		toggleButton.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if(toggleButton.isChecked()) {
+					bluetoothConnection.connectToServer();
+				} else {
+					bluetoothConnection.disconnectFromServer();
+				}
+			}
+		});
 	}
 
 	private void addStatusEntry(String text) {
@@ -120,12 +185,62 @@ public class Overview extends Activity implements NetworkEvent {
 	}
 
 	@Override
-	public void onStartListening(ConnectionType connectionType) {
-		addStatusEntry(String.format("Searching for nearby %s sensors", NetworkConnection.GetConnectionTypePrintname(connectionType)));
+	public void onStartListening(final ConnectionType connectionType) {
+		runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				addStatusEntry(String.format("Searching for nearby %s sensors", NetworkConnection.GetConnectionTypePrintname(connectionType)));
+			}
+			
+		});
 	}
 
 	@Override
-	public void onConnectionEstablished(ConnectionType connectionType) {
-		addStatusEntry(String.format("Connected to %s sensor", NetworkConnection.GetConnectionTypePrintname(connectionType)));
+	public void onConnectionEstablished(final ConnectionType connectionType) {
+		runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				addStatusEntry(String.format("Connected to %s sensor", NetworkConnection.GetConnectionTypePrintname(connectionType)));
+			}
+			
+		});
+	}
+	
+	@Override
+	public void onConnectionClosed(final ConnectionType connectionType) {
+		runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				addStatusEntry(String.format("Disconnected from %s sensor", NetworkConnection.GetConnectionTypePrintname(connectionType)));
+			}
+			
+		});
+	}
+
+	@Override
+	public void onCommandReceived(final String command) {
+		runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				addStatusEntry(String.format("Command received: %s", command));
+			}
+			
+		});
+	}
+
+	@Override
+	public void onConnectionError(final ConnectionType connectionType, final String error) {
+		runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				addStatusEntry(String.format("Connection error to %s sensors: %s", connectionType, error));
+			}
+			
+		});
 	}
 }

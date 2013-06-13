@@ -19,7 +19,9 @@ public class NetworkConnection {
 	}
 	
 	public void addNetworkEventListener(NetworkEvent listener) {
-		this.eventListenerList.add(listener);
+		if(!this.eventListenerList.contains(listener)) {
+			this.eventListenerList.add(listener);
+		}
 	}
 	
 	public void removeNetworkEventListener(NetworkEvent listener) {
@@ -35,6 +37,24 @@ public class NetworkConnection {
 	protected void fireOnConnectionEstablished() {
 		for(int i = 0; i < this.eventListenerList.size(); i++) {
 			this.eventListenerList.get(i).onConnectionEstablished(TYPE);
+		}
+	}
+	
+	protected void fireOnConnectionClosed() {
+		for(int i = 0; i < this.eventListenerList.size(); i++) {
+			this.eventListenerList.get(i).onConnectionClosed(TYPE);
+		}
+	}
+	
+	protected void fireOnConnectionError(String error) {
+		for(int i = 0; i < this.eventListenerList.size(); i++) {
+			this.eventListenerList.get(i).onConnectionError(TYPE, error);
+		}
+	}
+	
+	protected void fireOnCommandReceived(String command) {
+		for(int i = 0; i < this.eventListenerList.size(); i++) {
+			this.eventListenerList.get(i).onCommandReceived(command);
 		}
 	}
 	

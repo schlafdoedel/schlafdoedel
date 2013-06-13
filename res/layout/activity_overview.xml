@@ -13,15 +13,47 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:orientation="vertical" >
-        
-        <TextView
-	        android:id="@+id/mainPanelHeaderText"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:textSize="18sp"
-	        android:textColor="#FFFFFF"
-	        android:layout_marginBottom="10dp"
-	        android:text="Overview" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="0.65" >
+
+                <Button
+                    android:id="@+id/optionsButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_weight="0.65"
+                    android:text="Options" />
+
+                <TextView
+                    android:id="@+id/mainPanelHeaderText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentTop="true"
+                    android:text="Overview"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp" />
+
+                <ToggleButton
+                    android:id="@+id/bluetoothActiveButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_toLeftOf="@+id/optionsButton"
+                    android:textOn="BT ON"
+        			android:textOff="BT OFF"
+                    android:text="Bluetooth status" />
+
+            </RelativeLayout>
+        </LinearLayout>
 
         <ScrollView
             android:id="@+id/mainPanelScrollView"
@@ -36,6 +68,12 @@
                 
             </LinearLayout>
         </ScrollView>
+
+        <AnalogClock
+            android:id="@+id/analogClock1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
         
     </LinearLayout>
     
