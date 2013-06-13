@@ -4,13 +4,12 @@ import java.util.Date;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
@@ -42,6 +41,7 @@ public class Overview extends Activity implements NetworkEvent {
 		
 		this.bluetoothConnection = BluetoothConnection.CreateInstance(this);
 		this.bluetoothConnection.addNetworkEventListener(this);
+		this.bluetoothConnection.startServer();
 	}
 	
 	@Override
@@ -55,27 +55,9 @@ public class Overview extends Activity implements NetworkEvent {
     	ContextMenu.ManageItemClick(item, this);
     	return true;
     }
-	
-	@Override
-	public void onStop() {
-		super.onStop();
-		
-		if(this.bluetoothConnection != null) {
-			try {
-				this.bluetoothConnection.cleanup();
-			} catch (Exception e) {
-				Log.e("Overview.java", "Unable to create Bluetooth connection", e);
-			}
-		}
-	}
-	
-	@Override
-	public void onDestroy() {
-		System.exit(0);
-	}
 
 	private void addOptionsButtonListener() {
-		final Button optionsButton = (Button)findViewById(R.id.optionsButton);
+		final ImageButton optionsButton = (ImageButton)findViewById(R.id.optionsButton);
 		
 		optionsButton.setOnClickListener(new OnClickListener() {
 			
@@ -104,7 +86,8 @@ public class Overview extends Activity implements NetworkEvent {
 
 	private void addStatusEntry(String text) {
 		final int dateColumnWidth = 100;
-		final int dismissColumnWidth = 100;
+		final int dismissColumnWidth = 60;
+		final int dismissButtonSize = 48;
 		final int borderWidth = 60;
 		final int margin = 20;
 		final int textColumnWidth = Util.GetDeviceWidth(this) - dateColumnWidth - dismissColumnWidth - borderWidth;
@@ -135,8 +118,8 @@ public class Overview extends Activity implements NetworkEvent {
 		statusPanelEntry.addView(entryDescriptionView, new LayoutParams(textColumnWidth, LayoutParams.WRAP_CONTENT));
 		
 		//dismiss button
-		Button dismissButton = new Button(this);
-		dismissButton.setText("Dismiss");
+		ImageButton dismissButton = new ImageButton(this);
+		dismissButton.setBackground(getResources().getDrawable(R.drawable.button_dismiss));
 		
 		dismissButton.setOnClickListener(new OnClickListener() {
 			
@@ -150,7 +133,7 @@ public class Overview extends Activity implements NetworkEvent {
 			}
 		});
 		
-		statusPanelEntry.addView(dismissButton, new LayoutParams(dismissColumnWidth, LayoutParams.WRAP_CONTENT));
+		statusPanelEntry.addView(dismissButton, new LayoutParams(dismissButtonSize, dismissButtonSize));
 		
 		removeDefaultStatusEntry();
 	}
@@ -203,6 +186,9 @@ public class Overview extends Activity implements NetworkEvent {
 			@Override
 			public void run() {
 				addStatusEntry(String.format("Connected to %s sensor", NetworkConnection.GetConnectionTypePrintname(connectionType)));
+				
+				ToggleButton toggleButton = (ToggleButton)findViewById(R.id.bluetoothActiveButton);
+				toggleButton.setBackground(getResources().getDrawable(R.drawable.button_bluetooth_on));
 			}
 			
 		});
@@ -215,6 +201,9 @@ public class Overview extends Activity implements NetworkEvent {
 			@Override
 			public void run() {
 				addStatusEntry(String.format("Disconnected from %s sensor", NetworkConnection.GetConnectionTypePrintname(connectionType)));
+				
+				ToggleButton toggleButton = (ToggleButton)findViewById(R.id.bluetoothActiveButton);
+				toggleButton.setBackground(getResources().getDrawable(R.drawable.button_bluetooth_off));
 			}
 			
 		});

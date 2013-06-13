@@ -23,14 +23,15 @@
                 android:layout_height="match_parent"
                 android:layout_weight="0.65" >
 
-                <Button
+                <ImageButton
                     android:id="@+id/optionsButton"
                     android:layout_width="64dp"
                     android:layout_height="64dp"
                     android:layout_alignParentRight="true"
                     android:layout_alignParentTop="true"
                     android:layout_weight="0.65"
-                    android:text="Options" />
+                    android:text="Options"
+                    android:background="@drawable/button_options" />
 
                 <TextView
                     android:id="@+id/mainPanelHeaderText"
@@ -48,9 +49,10 @@
                     android:layout_height="64dp"
                     android:layout_alignParentTop="true"
                     android:layout_toLeftOf="@+id/optionsButton"
-                    android:textOn="BT ON"
-        			android:textOff="BT OFF"
-                    android:text="Bluetooth status" />
+                    android:textOn=""
+        			android:textOff=""
+                    android:text="Bluetooth status"
+                    android:background="@drawable/button_bluetooth_off" />
 
             </RelativeLayout>
         </LinearLayout>

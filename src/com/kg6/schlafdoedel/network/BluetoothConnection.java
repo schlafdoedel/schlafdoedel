@@ -60,8 +60,6 @@ public class BluetoothConnection extends NetworkConnection {
 		
 		this.server = null;
 		this.client = null;
-		
-		startServer();
 	}
 	
 	public void cleanup() {
@@ -86,7 +84,7 @@ public class BluetoothConnection extends NetworkConnection {
 		}
 	}
 	
-	private void startServer() {
+	public void startServer() {
 		try {
 			if(this.server == null || !this.server.isAlive()) {
 				BluetoothAdapter bluetoothAdapter = getBlueToothAdapter();
@@ -226,6 +224,12 @@ public class BluetoothConnection extends NetworkConnection {
 				}
 				
 				fireOnConnectionClosed();
+				
+				try {
+					Thread.sleep(CONNECTION_SLEEPTIME);
+				} catch (InterruptedException e) {
+					
+				}
 			}
 		}
 		
