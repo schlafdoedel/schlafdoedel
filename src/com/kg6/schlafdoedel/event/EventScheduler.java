@@ -30,6 +30,8 @@ public class EventScheduler extends Thread {
 	private List<EventExecutor> eventExecutorList;
 	private boolean enabled;
 	
+	private List<EventNotification> eventNotificationListenerList;
+	
 	private String sleepingPhase;
 	
 	private EventScheduler(Activity context, FrameLayout container) {
@@ -41,11 +43,23 @@ public class EventScheduler extends Thread {
 		
 		this.enabled = true;
 		
+		this.eventNotificationListenerList = new ArrayList<EventNotification>();
+		
 		this.sleepingPhase = Configuration.COMMAND_SHALLOW_SLEEPING_PHASE;
 	}
 	
 	public void cleanup() {
 		this.enabled = false;
+	}
+	
+	public void addEventNotificationListener(EventNotification listener) {
+		if(!this.eventNotificationListenerList.contains(listener)) {
+			this.eventNotificationListenerList.add(listener);
+		}
+	}
+	
+	public void removeEventNotificationListener(EventNotification listener) {
+		this.eventNotificationListenerList.remove(listener);
 	}
 	
 	public void setSleepingPhase(String sleepingPhase) {
@@ -71,6 +85,8 @@ public class EventScheduler extends Thread {
 			if(eventExecutor.getEvent().equals(event)) {
 				eventExecutor.dismiss();
 				
+				fireOnEventDismissed(eventExecutor.getEvent());
+				
 				this.eventExecutorList.remove(i);
 			}
 		}
@@ -87,6 +103,8 @@ public class EventScheduler extends Thread {
 					
 					if(event.getStart() < timeOfDay && (this.sleepingPhase.compareTo(Configuration.COMMAND_SHALLOW_SLEEPING_PHASE) == 0 || event.getEnd() < timeOfDay) && event.handle()) {
 						handleEvent(event);
+						
+						fireOnEventRaised(event);
 					}
 				}
 				
@@ -96,12 +114,12 @@ public class EventScheduler extends Thread {
 					
 					if(eventExecutor.getEvent().getEnd() + Configuration.EVENT_MAXIMUM_DURATION < timeOfDay) {
 						eventExecutor.dismiss();
-						
-						this.eventExecutorList.remove(i);
 					}
 					
 					if(eventExecutor.isDismissed()) {
+						fireOnEventDismissed(eventExecutor.getEvent());
 						
+						this.eventExecutorList.remove(i);
 					}
 				}
 			} catch (Exception e) {
@@ -117,7 +135,11 @@ public class EventScheduler extends Thread {
 		
 		//Stop all executors
 		for(int i = 0; i < this.eventExecutorList.size(); i++) {
-			this.eventExecutorList.get(i).dismiss();
+			EventExecutor eventExecutor = this.eventExecutorList.get(i);
+			
+			eventExecutor.dismiss();
+			
+			fireOnEventDismissed(eventExecutor.getEvent());
 		}
 		
 		this.eventExecutorList.clear();
@@ -132,5 +154,17 @@ public class EventScheduler extends Thread {
 		executor.start();
 		
 		this.eventExecutorList.add(executor);
+	}
+	
+	private void fireOnEventRaised(Event event) {
+		for(int i = 0; i < this.eventNotificationListenerList.size(); i++) {
+			this.eventNotificationListenerList.get(i).onEventRaised(event);
+		}
+	}
+	
+	private void fireOnEventDismissed(Event event) {
+		for(int i = 0; i < this.eventNotificationListenerList.size(); i++) {
+			this.eventNotificationListenerList.get(i).onEventDismissed(event);
+		}
 	}
 }
