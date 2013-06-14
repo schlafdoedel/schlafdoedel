@@ -58,7 +58,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		//this.eventScheduler.addEvent(event);
 		
 		source = new EventSource("http://3.bp.blogspot.com/-J0ms_mKUTMg/TuS1QPg8LqI/AAAAAAAAGHA/1IobgDijAiQ/s1600/sunrise.jpg");
-		event = new Event("Show me an image", EventType.Image, Util.GetMillisecondsOfDay(10, 41, 00), Util.GetMillisecondsOfDay(15, 45, 00), repetition, source);
+		event = new Event("Show me an image", EventType.Image, Util.GetMillisecondsOfDay(10, 41, 00), Util.GetMillisecondsOfDay(21, 45, 00), repetition, source);
 		
 		this.eventScheduler.addEvent(event);
 	}
@@ -83,6 +83,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	
 	private void initializeEventScheduler() {
 		this.eventScheduler = EventScheduler.CreateInstance(this, (FrameLayout)findViewById(R.id.visualizationPanel));
+		this.eventScheduler.addEventNotificationListener(this);
 		
 		if(!this.eventScheduler.isAlive()) {
 			this.eventScheduler.start();

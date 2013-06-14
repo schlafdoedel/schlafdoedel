@@ -44,7 +44,7 @@ public class EventExecutor extends Thread {
 	}
 	
 	public boolean isDismissed() {
-		return this.enabled;
+		return !this.enabled;
 	}
 	
 	public void run() {

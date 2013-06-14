@@ -44,53 +44,74 @@ public class StatusPanel extends LinearLayout {
 		this.eventScheduler = eventScheduler;
 	}
 	
-	public void addStatusText(String text) {
-		addStatusEntry(new StatusEntry(text));
-	}
-	
-	public void addStatusText(Event event) {
-		addStatusEntry(new StatusEntry(event));
-	}
-	
-	public void removeStatusText(Event event) {
-		StatusEntry statusEntry = null;
-		
-		for(int i = this.statusEntryList.size() - 1; i >= 0; i--) {
-			StatusEntry entry = this.statusEntryList.get(i);
-			
-			if(entry.event.equals(event)) {
-				statusEntry = entry;
-				break;
+	public void addStatusText(final String text) {
+		CONTEXT.runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				addStatusEntry(new StatusEntry(text));
 			}
-		}
-		
-		removeStatusEntry(statusEntry);
+			
+		});
+	}
+	
+	public void addStatusText(final Event event) {
+		CONTEXT.runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				addStatusEntry(new StatusEntry(event.getTitle(), event));
+			}
+			
+		});
+	}
+	
+	public void removeStatusText(final Event event) {
+		CONTEXT.runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				StatusEntry statusEntry = null;
+				
+				for(int i = statusEntryList.size() - 1; i >= 0; i--) {
+					StatusEntry entry = statusEntryList.get(i);
+					
+					if(entry.hasEvent() && event.equals(entry.event)) {
+						statusEntry = entry;
+						break;
+					}
+				}
+				
+				if(statusEntry != null) {
+					removeStatusEntry(statusEntry);
+				}
+			}
+			
+		});
 	}
 	
 	private void addStatusEntry(StatusEntry entry) {
 		this.statusEntryList.add(entry);
 		
 		//Remove the default entry
-		removeView(this.defaultStatusEntry.view);
+		if(this.defaultStatusEntry.hasView()) {
+			removeView(this.defaultStatusEntry.view);
+		}
 		
 		//Update the status view
 		updateStatusView();
 	}
 	
 	private void removeStatusEntry(StatusEntry entry) {
-		if(entry.view != null) {
+		if(entry.hasView()) {
 			removeView(entry.view);
-		}
-		
-		if(entry.event != null && this.eventScheduler != null) {
-			this.eventScheduler.dismissEvent(entry.event);
 		}
 		
 		//Remove the entry
 		this.statusEntryList.remove(entry);
 		
 		//Show the default entry if necessary
-		if(this.statusEntryList.size() == 0) {
+		if(this.statusEntryList.size() == 0 && this.defaultStatusEntry.hasView()) {
 			addView(this.defaultStatusEntry.view, getStatusEntryParams());
 		}
 	}
@@ -99,7 +120,7 @@ public class StatusPanel extends LinearLayout {
 		for(int i = 0; i < this.statusEntryList.size(); i++) {
 			StatusEntry entry = this.statusEntryList.get(i);
 			
-			if(entry.view == null) {
+			if(!entry.hasView()) {
 				entry.view = generateEntry(entry);
 
 				addView(entry.view, getStatusEntryParams());
@@ -107,7 +128,7 @@ public class StatusPanel extends LinearLayout {
 		}
 		
 		//Scroll down automatically
-		ScrollView scrollView = (ScrollView)findViewById(R.id.statusPanelScrollView);
+		ScrollView scrollView = (ScrollView)CONTEXT.findViewById(R.id.statusPanelScrollView);
 		
 		if(scrollView != null) {
 			scrollView.scrollTo(0, scrollView.getBottom());
@@ -120,6 +141,10 @@ public class StatusPanel extends LinearLayout {
 			@Override
 			public void onClick(View v) {
 				removeStatusEntry(entry);
+				
+				if(entry.hasEvent() && eventScheduler != null) {
+					eventScheduler.dismissEvent(entry.event);
+				}
 			}
 		};
 		
@@ -188,9 +213,17 @@ public class StatusPanel extends LinearLayout {
 			this.event = null;
 		}
 		
-		public StatusEntry(Event event) {
-			this.title = event.getTitle();
+		public StatusEntry(String title, Event event) {
+			this.title = title;
 			this.event = event;
+		}
+		
+		public boolean hasEvent() {
+			return this.event != null;
+		}
+		
+		public boolean hasView() {
+			return this.view != null;
 		}
 	}
 }
