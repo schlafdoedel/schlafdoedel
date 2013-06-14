@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -16,6 +17,10 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.kg6.schlafdoedel.custom.Util;
+import com.kg6.schlafdoedel.event.Event;
+import com.kg6.schlafdoedel.event.Event.EventType;
+import com.kg6.schlafdoedel.event.EventScheduler;
+import com.kg6.schlafdoedel.event.EventSource;
 import com.kg6.schlafdoedel.network.BluetoothConnection;
 import com.kg6.schlafdoedel.network.NetworkConnection;
 import com.kg6.schlafdoedel.network.NetworkConnection.ConnectionType;
@@ -24,6 +29,7 @@ import com.kg6.schlafdoedelmaster.R;
 
 public class Overview extends Activity implements NetworkEvent {
 	private BluetoothConnection bluetoothConnection;
+	private EventScheduler eventScheduler;
 	
 	private LinearLayout defaultStatusPanelView;
 
@@ -39,9 +45,23 @@ public class Overview extends Activity implements NetworkEvent {
 		
 		addDefaultStatusEntry();
 		
-		this.bluetoothConnection = BluetoothConnection.CreateInstance(this);
-		this.bluetoothConnection.addNetworkEventListener(this);
-		this.bluetoothConnection.startServer();
+		initializeBluetoothConnection();
+		initializeEventScheduler();
+		
+		createTestEvents();
+	}
+	
+	private void createTestEvents() {
+		int[] repetition = new int[] { 1, 1, 1, 1, 1, 1, 1 };
+		EventSource source = new EventSource("http://www.cr944.at:8000/cr944-high.mp3");
+		Event event = new Event("Wake me up", EventType.Music, Util.GetMillisecondsOfDay(00, 41, 00), Util.GetMillisecondsOfDay(10, 45, 00), repetition, source);
+		
+		//this.eventScheduler.addEvent(event);
+		
+		source = new EventSource("http://3.bp.blogspot.com/-J0ms_mKUTMg/TuS1QPg8LqI/AAAAAAAAGHA/1IobgDijAiQ/s1600/sunrise.jpg");
+		event = new Event("Show me an image", EventType.Image, Util.GetMillisecondsOfDay(10, 41, 00), Util.GetMillisecondsOfDay(15, 45, 00), repetition, source);
+		
+		this.eventScheduler.addEvent(event);
 	}
 	
 	@Override
@@ -55,6 +75,17 @@ public class Overview extends Activity implements NetworkEvent {
     	ContextMenu.ManageItemClick(item, this);
     	return true;
     }
+	
+	private void initializeBluetoothConnection() {
+		this.bluetoothConnection = BluetoothConnection.CreateInstance(this);
+		this.bluetoothConnection.addNetworkEventListener(this);
+		this.bluetoothConnection.startServer();
+	}
+	
+	private void initializeEventScheduler() {
+		this.eventScheduler = EventScheduler.CreateInstance(this, (FrameLayout)findViewById(R.id.visualizationPanel));
+		this.eventScheduler.start();
+	}
 
 	private void addOptionsButtonListener() {
 		final ImageButton optionsButton = (ImageButton)findViewById(R.id.optionsButton);
@@ -216,6 +247,8 @@ public class Overview extends Activity implements NetworkEvent {
 			@Override
 			public void run() {
 				addStatusEntry(String.format("Command received: %s", command));
+				
+				handleSensorCommand(command);
 			}
 			
 		});
@@ -231,5 +264,11 @@ public class Overview extends Activity implements NetworkEvent {
 			}
 			
 		});
+	}
+	
+	private void handleSensorCommand(String command) {
+		if(this.eventScheduler != null && (command.compareTo(Configuration.COMMAND_DEEP_SLEEPING_PHASE) == 0 || command.compareTo(Configuration.COMMAND_SHALLOW_SLEEPING_PHASE) == 0)) {
+			this.eventScheduler.setSleepingPhase(command);
+		}
 	}
 }

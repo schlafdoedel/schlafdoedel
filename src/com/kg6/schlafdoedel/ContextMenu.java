@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.kg6.schlafdoedel.custom.SleepingPhaseDialog;
+import com.kg6.schlafdoedel.event.EventScheduler;
 import com.kg6.schlafdoedel.network.BluetoothConnection;
 
 public class ContextMenu {
@@ -26,12 +27,19 @@ public class ContextMenu {
 			SleepingPhaseDialog dialog = new SleepingPhaseDialog(context);
 			dialog.show();
 		} else if(item.getItemId() == ContextMenuOptions.CLOSE_APPLICATION.ordinal()) {
-			BluetoothConnection bluetoothConnection = BluetoothConnection.CreateInstance(context);
-			
 			try {
+				BluetoothConnection bluetoothConnection = BluetoothConnection.CreateInstance(context);
+				
 				bluetoothConnection.cleanup();
 			} catch (Exception e) {
-				Log.e("ContextMenu.java", "Unable to create Bluetooth connection", e);
+				Log.e("ContextMenu.java", "Unable to cleanup the Bluetooth connection", e);
+			}
+			
+			try {
+				EventScheduler eventScheduler = EventScheduler.CreateInstance(context, null);
+				eventScheduler.cleanup();
+			} catch (Exception e) {
+				Log.e("ContextMenu.java", "Unable to cleanup the EventScheduler", e);
 			}
 			
 			System.exit(0);

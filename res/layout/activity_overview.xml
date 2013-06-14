@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="10dp"
+    android:paddingBottom="0dp"
     android:paddingLeft="10dp"
     android:paddingRight="10dp"
     android:paddingTop="10dp"
@@ -11,79 +11,55 @@
     <LinearLayout
         android:id="@+id/mainPanel"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:orientation="vertical" >
+        android:layout_height="50dp"
+        android:orientation="horizontal" >
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
-
-            <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="0.65" >
-
-                <ImageButton
-                    android:id="@+id/optionsButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentTop="true"
-                    android:layout_weight="0.65"
-                    android:text="Options"
-                    android:background="@drawable/button_options" />
-
-                <TextView
-                    android:id="@+id/mainPanelHeaderText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentTop="true"
-                    android:text="Overview"
-                    android:textColor="#FFFFFF"
-                    android:textSize="18sp" />
-
-                <ToggleButton
-                    android:id="@+id/bluetoothActiveButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_toLeftOf="@+id/optionsButton"
-                    android:textOn=""
-        			android:textOff=""
-                    android:text="Bluetooth status"
-                    android:background="@drawable/button_bluetooth_off" />
-
-            </RelativeLayout>
-        </LinearLayout>
-
-        <ScrollView
-            android:id="@+id/mainPanelScrollView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
-
-            <LinearLayout
-                android:id="@+id/mainPanelContent"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical" >
-                
-            </LinearLayout>
-        </ScrollView>
-
-        <AnalogClock
-            android:id="@+id/analogClock1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center" />
+        <TextView
+	        android:id="@+id/mainPanelHeaderText"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:textColor="#FFFFFF"
+	        android:textSize="18sp"
+	        android:text="Overview" />
         
-    </LinearLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+            
+            <ToggleButton
+	            android:id="@+id/bluetoothActiveButton"
+	            android:layout_width="48dp"
+	            android:layout_height="48dp"
+	            android:background="@drawable/button_bluetooth_off"
+	            android:layout_alignParentRight="true"
+	            android:layout_marginRight="50dp"
+	            android:textOff=""
+	            android:textOn="" />
+            
+            <ImageButton
+            	android:id="@+id/optionsButton"
+	            android:layout_width="48dp"
+	            android:layout_height="48dp"
+	            android:background="@drawable/button_options"
+	            android:layout_alignParentRight="true" />
+
+        </RelativeLayout>
+	</LinearLayout>
+        
+    <FrameLayout
+        android:id="@+id/visualizationPanel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="48dp"
+        android:layout_marginBottom="250dp" >
+
+    </FrameLayout>
     
     <LinearLayout
         android:id="@+id/statusPanel"
         android:layout_width="fill_parent"
         android:layout_height="250dp"
-        android:layout_alignBottom="@+id/backgroundPanel"
+        android:layout_alignBottom="@+id/visualizationPanel"
 	    android:layout_alignParentBottom="true"
         android:orientation="vertical" >
         
