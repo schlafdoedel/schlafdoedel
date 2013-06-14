@@ -16,6 +16,12 @@ public class Util {
 		return format.format(date);
 	}
 	
+	public static String GetPrintableTimeOfDay(long timeOfDay) {
+		Date date = new Date(Util.GetMillisecondsOfDay() + timeOfDay);
+		
+		return GetTimeOfDatePrintableFormat(date);
+	}
+	
 	public static int GetDeviceWidth(Context context) {
 		Point windowSize = new Point();
 		WindowManager manager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);

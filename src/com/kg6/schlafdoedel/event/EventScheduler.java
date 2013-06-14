@@ -78,6 +78,22 @@ public class EventScheduler extends Thread {
 		}
 	}
 	
+	public Event getNextUpcomingEvent() {
+		Event nextEvent = null;
+		
+		final long timeOfDay = System.currentTimeMillis() - Util.GetMillisecondsOfDay();
+		
+		for(int i = 0; i < this.eventList.size(); i++) {
+			Event event = this.eventList.get(i);
+			
+			if((nextEvent == null || event.getStart() < nextEvent.getStart()) && event.getStart() > timeOfDay) {
+				nextEvent = event;
+			}
+		}
+		
+		return nextEvent;
+	}
+	
 	public void dismissEvent(Event event) {
 		for(int i = this.eventExecutorList.size() - 1; i >= 0; i--) {
 			EventExecutor eventExecutor = this.eventExecutorList.get(i);

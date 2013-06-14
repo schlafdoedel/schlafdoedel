@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ToggleButton;
 
+import com.kg6.schlafdoedel.custom.DigitalClock;
 import com.kg6.schlafdoedel.custom.StatusPanel;
 import com.kg6.schlafdoedel.custom.Util;
 import com.kg6.schlafdoedel.event.Event;
@@ -58,7 +59,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		//this.eventScheduler.addEvent(event);
 		
 		source = new EventSource("http://3.bp.blogspot.com/-J0ms_mKUTMg/TuS1QPg8LqI/AAAAAAAAGHA/1IobgDijAiQ/s1600/sunrise.jpg");
-		event = new Event("Show me an image", EventType.Image, Util.GetMillisecondsOfDay(10, 41, 00), Util.GetMillisecondsOfDay(21, 45, 00), repetition, source);
+		event = new Event("Show me an image", EventType.Image, Util.GetMillisecondsOfDay(21, 40, 00), Util.GetMillisecondsOfDay(21, 45, 00), repetition, source);
 		
 		this.eventScheduler.addEvent(event);
 	}
@@ -91,6 +92,12 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		
 		if(this.statusPanel != null) {
 			this.statusPanel.setEventScheduler(this.eventScheduler);
+		}
+		
+		DigitalClock digitalClock = (DigitalClock)findViewById(R.id.digitalClock);
+		
+		if(digitalClock != null) {
+			digitalClock.setEventScheduler(this.eventScheduler);
 		}
 	}
 	
