@@ -40,12 +40,11 @@ public class EventScheduler extends Thread {
 		
 		this.eventList = new ArrayList<Event>();
 		this.eventExecutorList = new ArrayList<EventExecutor>();
-		
 		this.enabled = true;
 		
 		this.eventNotificationListenerList = new ArrayList<EventNotification>();
 		
-		this.sleepingPhase = Configuration.COMMAND_SHALLOW_SLEEPING_PHASE;
+		this.sleepingPhase = Configuration.COMMAND_SLEEPING_PHASE_AWAKE;
 	}
 	
 	public void cleanup() {
@@ -117,7 +116,7 @@ public class EventScheduler extends Thread {
 				for(int i = 0; i < this.eventList.size(); i++) {
 					Event event = this.eventList.get(i);
 					
-					if(event.getStart() < timeOfDay && (this.sleepingPhase.compareTo(Configuration.COMMAND_SHALLOW_SLEEPING_PHASE) == 0 || event.getEnd() < timeOfDay) && event.handle()) {
+					if(event.getStart() < timeOfDay && (this.sleepingPhase.compareTo(Configuration.COMMAND_SLEEPING_PHASE_SHALLOW) == 0 || event.getEnd() < timeOfDay) && event.handle()) {
 						handleEvent(event);
 						
 						fireOnEventRaised(event);

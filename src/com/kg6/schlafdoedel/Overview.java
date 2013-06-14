@@ -6,6 +6,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -39,6 +40,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		setContentView(R.layout.activity_overview);
 		
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		setScreenBrightness(Configuration.WINDOW_MAX_BRIGHTNESS);
 		
 		addOptionsButtonListener();
 		addBluetoothButtonListener();
@@ -59,7 +61,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		//this.eventScheduler.addEvent(event);
 		
 		source = new EventSource("http://3.bp.blogspot.com/-J0ms_mKUTMg/TuS1QPg8LqI/AAAAAAAAGHA/1IobgDijAiQ/s1600/sunrise.jpg");
-		event = new Event("Show me an image", EventType.Image, Util.GetMillisecondsOfDay(21, 40, 00), Util.GetMillisecondsOfDay(21, 45, 00), repetition, source);
+		event = new Event("Show me an image", EventType.Image, Util.GetMillisecondsOfDay(21, 27, 00), Util.GetMillisecondsOfDay(21, 45, 00), repetition, source);
 		
 		this.eventScheduler.addEvent(event);
 	}
@@ -205,8 +207,16 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	}
 	
 	private void handleSensorCommand(String command) {
-		if(this.eventScheduler != null && (command.compareTo(Configuration.COMMAND_DEEP_SLEEPING_PHASE) == 0 || command.compareTo(Configuration.COMMAND_SHALLOW_SLEEPING_PHASE) == 0)) {
+		if(this.eventScheduler != null && (command.compareTo(Configuration.COMMAND_SLEEPING_PHASE_AWAKE) == 0 || 
+				command.compareTo(Configuration.COMMAND_SLEEPING_PHASE_DEEP) == 0 || command.compareTo(Configuration.COMMAND_SLEEPING_PHASE_SHALLOW) == 0)) {
 			this.eventScheduler.setSleepingPhase(command);
+		}
+		
+		//Switch brightness
+		if(command.compareTo(Configuration.COMMAND_SLEEPING_PHASE_AWAKE) == 0) {
+			setScreenBrightness(Configuration.WINDOW_MAX_BRIGHTNESS);
+		} else {
+			setScreenBrightness(Configuration.WINDOW_MIN_BRIGHTNESS);
 		}
 	}
 
@@ -228,5 +238,14 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		if(this.statusPanel != null) {
 			this.statusPanel.addStatusText(text);
 		}
+	}
+	
+	private void setScreenBrightness(float brightness) {
+		Window myWindow = getWindow();
+		
+		WindowManager.LayoutParams winParams = myWindow.getAttributes();
+		winParams.screenBrightness = brightness;
+		
+		myWindow.setAttributes(winParams);
 	}
 }

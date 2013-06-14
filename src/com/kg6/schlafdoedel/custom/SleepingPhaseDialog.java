@@ -49,6 +49,21 @@ public class SleepingPhaseDialog extends Dialog {
 		
 		this.contentLayout.addView(entryLayout, entryLayoutParams);
 		
+		//awake button
+		Button awakeButton = new Button(getContext());
+		awakeButton.setText("Awake");
+		
+		awakeButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				BluetoothConnection connection = BluetoothConnection.CreateInstance(CONTEXT);
+				connection.sendCommand(Configuration.COMMAND_SLEEPING_PHASE_AWAKE);
+			}
+		});
+		
+		entryLayout.addView(awakeButton, new LayoutParams(CONNECT_BUTTON_WIDTH, LayoutParams.WRAP_CONTENT));
+		
 		//deep sleep button
 		Button deepSleepingPhaseButton = new Button(getContext());
 		deepSleepingPhaseButton.setText("Deep sleep");
@@ -58,7 +73,7 @@ public class SleepingPhaseDialog extends Dialog {
 			@Override
 			public void onClick(View v) {
 				BluetoothConnection connection = BluetoothConnection.CreateInstance(CONTEXT);
-				connection.sendCommand(Configuration.COMMAND_DEEP_SLEEPING_PHASE);
+				connection.sendCommand(Configuration.COMMAND_SLEEPING_PHASE_DEEP);
 			}
 		});
 		
@@ -73,7 +88,7 @@ public class SleepingPhaseDialog extends Dialog {
 			@Override
 			public void onClick(View v) {
 				BluetoothConnection connection = BluetoothConnection.CreateInstance(CONTEXT);
-				connection.sendCommand(Configuration.COMMAND_SHALLOW_SLEEPING_PHASE);
+				connection.sendCommand(Configuration.COMMAND_SLEEPING_PHASE_SHALLOW);
 			}
 		});
 		
