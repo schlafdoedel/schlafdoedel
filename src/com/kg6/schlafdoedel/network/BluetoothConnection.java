@@ -127,10 +127,10 @@ public class BluetoothConnection extends NetworkConnection {
 		BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		
 		if(bluetoothAdapter == null) {
-			AlertDialog ad = new AlertDialog.Builder(CONTEXT).create();
-			ad.setCancelable(false);
-			ad.setMessage("This device does not support a bluetooth adapter, which is necessary to connect it to external sensors. The functionality of the Schlafdödel is therefore limited.");
-			ad.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+			AlertDialog dialog = new AlertDialog.Builder(CONTEXT).create();
+			dialog.setCancelable(false);
+			dialog.setMessage("This device does not support a bluetooth adapter, which is necessary to connect it to external sensors. The functionality of the Schlafdödel is therefore limited.");
+			dialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
 				
 				public void onClick(DialogInterface dialog, int which) {
 					dialog.dismiss();
