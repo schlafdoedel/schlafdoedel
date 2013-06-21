@@ -11,9 +11,9 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.kg6.schlafdoedel.R;
 import com.kg6.schlafdoedel.event.Event;
 import com.kg6.schlafdoedel.event.EventScheduler;
-import com.kg6.schlafdoedelmaster.R;
 
 public class RecentActivitiesPanel extends LinearLayout {
 	private final int VIEW_DATE_COLUMN_WIDTH = 100;

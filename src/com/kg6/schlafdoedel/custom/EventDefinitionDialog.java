@@ -22,11 +22,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.kg6.schlafdoedel.Configuration;
+import com.kg6.schlafdoedel.R;
 import com.kg6.schlafdoedel.event.Event;
 import com.kg6.schlafdoedel.event.EventScheduler;
 import com.kg6.schlafdoedel.event.EventSource;
 import com.kg6.schlafdoedel.event.EventSource.SourceType;
-import com.kg6.schlafdoedelmaster.R;
 
 public class EventDefinitionDialog extends Dialog {
 	private final int ROW_HEADER_WIDTH = 180;

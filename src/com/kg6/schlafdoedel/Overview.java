@@ -31,7 +31,6 @@ import com.kg6.schlafdoedel.network.BluetoothConnection;
 import com.kg6.schlafdoedel.network.NetworkConnection;
 import com.kg6.schlafdoedel.network.NetworkConnection.ConnectionType;
 import com.kg6.schlafdoedel.network.NetworkEvent;
-import com.kg6.schlafdoedelmaster.R;
 
 public class Overview extends Activity implements NetworkEvent, EventNotification {
 	private BluetoothConnection bluetoothConnection;

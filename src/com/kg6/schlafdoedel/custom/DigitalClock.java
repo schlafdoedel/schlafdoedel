@@ -14,9 +14,9 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
+import com.kg6.schlafdoedel.R;
 import com.kg6.schlafdoedel.event.Event;
 import com.kg6.schlafdoedel.event.EventScheduler;
-import com.kg6.schlafdoedelmaster.R;
 
 public class DigitalClock extends View {
 	private final int TIMER_SLEEPTIME = 1000;
