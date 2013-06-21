@@ -116,6 +116,14 @@ public class BluetoothConnection extends NetworkConnection {
 		}
 	}
 	
+	public boolean isConnected() {
+		if(this.client != null) {
+			return this.client.isConnected();
+		}
+		
+		return false;
+	}
+	
 	public void disconnectFromServer() {
 		if(this.client != null) {
 			this.client.disconnectFromServer();
@@ -319,7 +327,9 @@ public class BluetoothConnection extends NetworkConnection {
 				return;
 			}
 			try {
-				this.clientSocket.close();
+				if(this.clientSocket != null) {
+					this.clientSocket.close();
+				}
 			} catch (Exception e) {
 				Log.e("BluetoothConnection.java", "Unable to disconnect from server", e);
 			}
@@ -406,6 +416,17 @@ public class BluetoothConnection extends NetworkConnection {
 			
 			//title
 			setTitle("Select the Schlafdödel sleeping phase sensor");
+			
+			//Handle back buttons
+			setOnDismissListener(new OnDismissListener() {
+				
+				@Override
+				public void onDismiss(DialogInterface dialog) {
+					if(!isConnected()) {
+						disconnectFromServer();
+					}
+				}
+			});
 		}
 		
 		public void addSelectableDevice(final BluetoothDevice device) {

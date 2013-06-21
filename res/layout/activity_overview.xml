@@ -9,7 +9,7 @@
     tools:context=".Overview" >
 
     <LinearLayout
-        android:id="@+id/mainPanel"
+        android:id="@+id/headerPanel"
         android:layout_width="fill_parent"
         android:layout_height="50dp"
         android:orientation="horizontal" >
@@ -26,15 +26,21 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" >
             
-            <ToggleButton
+            <ImageButton
+	            android:id="@+id/addEventButton"
+	            android:layout_width="48dp"
+	            android:layout_height="48dp"
+	            android:background="@drawable/button_add_event"
+	            android:layout_alignParentRight="true"
+	            android:layout_marginRight="100dp" />
+            
+            <ImageButton
 	            android:id="@+id/bluetoothActiveButton"
 	            android:layout_width="48dp"
 	            android:layout_height="48dp"
 	            android:background="@drawable/button_bluetooth_off"
 	            android:layout_alignParentRight="true"
-	            android:layout_marginRight="50dp"
-	            android:textOff=""
-	            android:textOn="" />
+	            android:layout_marginRight="50dp" />
             
             <ImageButton
             	android:id="@+id/optionsButton"
@@ -47,12 +53,12 @@
 	</LinearLayout>
 	
     <LinearLayout
-        android:id="@+id/mainPanel"
+        android:id="@+id/contentPanel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:layout_marginTop="48dp"
-        android:layout_marginBottom="250dp" >
+        android:layout_marginBottom="290dp" >
 	
 	    <com.kg6.schlafdoedel.custom.DigitalClock
 	            android:id="@+id/digitalClock"
@@ -72,20 +78,35 @@
     <LinearLayout
         android:id="@+id/statusPanel"
         android:layout_width="fill_parent"
-        android:layout_height="250dp"
+        android:layout_height="270dp"
         android:layout_alignBottom="@+id/visualizationPanel"
 	    android:layout_alignParentBottom="true"
         android:orientation="vertical" >
-        
-        <TextView
-	        android:id="@+id/statusPanelHeaderText"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:textSize="18sp"
-	        android:textColor="#FFFFFF"
-	        android:layout_marginBottom="10dp"
-	        android:text="Recent activities" />
+	    
+        <LinearLayout
+        android:id="@+id/statusPanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+	        <Button
+	            android:id="@+id/recentActivitiesButton"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:textSize="18sp"
+	            android:text="Recent activities"
+	            android:layout_marginBottom="10dp" />
+	        
+	        <Button
+	            android:id="@+id/eventListButton"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:textSize="18sp"
+	            android:text="Event list"
+	            android:layout_marginBottom="10dp" />
     
+	    </LinearLayout>
+	        
 	    <ScrollView
 	        android:id="@+id/statusPanelScrollView"
 	        android:layout_width="match_parent"

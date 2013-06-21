@@ -10,6 +10,8 @@ import android.graphics.Point;
 import android.view.WindowManager;
 
 public class Util {
+	private static final int NUM_WEEKDAYS = 7;
+	
 	public static String GetTimeOfDatePrintableFormat(Date date) {
 		SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss", Locale.GERMANY);
 		
@@ -48,5 +50,30 @@ public class Util {
 		calendar.set(Calendar.MILLISECOND, 0);
 		
 		return calendar.getTimeInMillis() - Util.GetMillisecondsOfDay();
+	}
+	
+	public static int GetNumberOfWeekdays() {
+		return NUM_WEEKDAYS;
+	}
+	
+	public static String getWeekdayPrintname(int weekday) {
+		switch(weekday) {
+			case 0:
+				return "Sunday";
+			case 1:
+				return "Monday";
+			case 2:
+				return "Tuesday";
+			case 3:
+				return "Wednesday";
+			case 4:
+				return "Thursday";
+			case 5:
+				return "Friday";
+			case 6:
+				return "Saturday";
+		}
+		
+		return "unknown";
 	}
 }

@@ -9,4 +9,7 @@ public class Configuration {
 	
 	public static final float WINDOW_MAX_BRIGHTNESS = 0.8f;
 	public static final float WINDOW_MIN_BRIGHTNESS = 0f;
+	
+	public static final int FILE_CHOOSER_MUSIC_RESPONSE_CODE = 0;
+	public static final int FILE_CHOOSER_IMAGE_RESPONSE_CODE = 1;
 }

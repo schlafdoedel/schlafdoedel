@@ -2,40 +2,37 @@ package com.kg6.schlafdoedel.event;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
+
+import com.kg6.schlafdoedel.custom.Util;
 
 
 public class Event {
 	private static int IdCounter = 1;
 	
-	public enum EventType {
-		Music,
-		Radio,
-		Image,
+	public static int GetNextEventId() {
+		return IdCounter;
 	}
-	
-	private final int NUM_WEEKDAYS = 7;
 	
 	private final int ID;
 	private String title;
-	private EventType type;
 	
 	private long start;
 	private long end;
 	private int[] repetition;
-	private EventSource source;
+	private List<EventSource> sourceList;
 	
 	private List<Integer> handledTimestampList;
 	
-	public Event(String title, EventType type, long start, long end, int[] repetition, EventSource source) {
+	public Event(String title, long start, long end) {
 		ID = IdCounter++;
 		
 		this.title = title;
-		this.type = type;
 		this.start = start;
 		this.end = end;
-		this.repetition = repetition;
-		this.source = source;
+		this.repetition = new int[Util.GetNumberOfWeekdays()];
+		this.sourceList = new ArrayList<EventSource>();
 		
 		this.handledTimestampList = new ArrayList<Integer>();
 	}
@@ -52,12 +49,16 @@ public class Event {
 		this.title = title;
 	}
 
-	public EventType getType() {
-		return type;
+	public List<EventSource> getEventSourceList() {
+		return Collections.unmodifiableList(this.sourceList);
 	}
 
-	public void setType(EventType type) {
-		this.type = type;
+	public void addEventSource(EventSource source) {
+		this.sourceList.add(source);
+	}
+	
+	public void removeEventSource(EventSource source) {
+		this.sourceList.remove(source);
 	}
 
 	public long getStart() {
@@ -80,16 +81,16 @@ public class Event {
 		return repetition;
 	}
 
-	public void setRepetition(int[] repetition) {
-		this.repetition = repetition;
-	}
-
-	public EventSource getSource() {
-		return source;
-	}
-
-	public void setSource(EventSource source) {
-		this.source = source;
+	public void setRepetition(int day, boolean enabled) {
+		if(day < 0 || day >= this.repetition.length) {
+			return;
+		}
+		
+		if(enabled) {
+			this.repetition[day] = 1;
+		} else {
+			this.repetition[day] = 0;
+		}
 	}
 	
 	public boolean handle() {
@@ -110,7 +111,7 @@ public class Event {
 		//Remember that the event was handled and make sure the list will be cleaned up after some time
 		this.handledTimestampList.add(dayOfYear);
 		
-		if(this.handledTimestampList.size() > NUM_WEEKDAYS) {
+		if(this.handledTimestampList.size() > Util.GetNumberOfWeekdays()) {
 			this.handledTimestampList.remove(0);
 		}
 		

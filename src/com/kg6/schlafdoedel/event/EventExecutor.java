@@ -3,6 +3,7 @@ package com.kg6.schlafdoedel.event;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -16,18 +17,20 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 public class EventExecutor extends Thread {
-	private final Event EVENT;
 	private final Activity CONTEXT;
 	private final FrameLayout CONTAINER;
+	private final EventScheduler EVENT_SCHEDULER;
+	private final Event EVENT;
 	
 	private MediaPlayer mediaPlayer;
 	private ImageView imageView;
 	private boolean enabled;	
 	
-	public EventExecutor(Event event, Activity context, FrameLayout container) {
-		EVENT = event;
+	public EventExecutor(Activity context, EventScheduler eventScheduler, Event event, FrameLayout container) {
 		CONTEXT = context;
 		CONTAINER = container;
+		EVENT_SCHEDULER = eventScheduler;
+		EVENT = event;
 		
 		this.mediaPlayer = null;
 		this.imageView = null;
@@ -48,14 +51,17 @@ public class EventExecutor extends Thread {
 	}
 	
 	public void run() {
-		switch(EVENT.getType()) {
-			case Image:
-				showImage();
-				break;
-			case Music:
-			case Radio:
-				startPlayback();
-				break;
+		List<EventSource> eventSourceList = EVENT.getEventSourceList();
+		
+		for(EventSource source : eventSourceList) {
+			switch(source.getSourceType()) {
+				case Image:
+					showImage(source);
+					break;
+				case Music:
+					startPlayback(source);
+					break;
+			}
 		}
 		
 		while(this.enabled) {
@@ -66,19 +72,20 @@ public class EventExecutor extends Thread {
 			}
 		}
 		
-		switch(EVENT.getType()) {
-			case Image:
-				hideImage();
-				break;
-			case Music:
-			case Radio:
-				stopPlayback();
-				break;
+		for(EventSource source : eventSourceList) {
+			switch(source.getSourceType()) {
+				case Image:
+					hideImage();
+					break;
+				case Music:
+					stopPlayback();
+					break;
+			}
 		}
 	}
 	
-	private void showImage() {
-		final Bitmap bitmap = loadBitmap(EVENT.getSource());
+	private void showImage(EventSource source) {
+		final Bitmap bitmap = loadBitmap(source);
 		
 		if(bitmap != null) {
 			CONTEXT.runOnUiThread(new Runnable() {
@@ -99,6 +106,8 @@ public class EventExecutor extends Thread {
 					CONTAINER.addView(imageView, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 				}
 			});
+		} else {
+			EVENT_SCHEDULER.raiseEventError(EVENT, "Unable to load the image");
 		}
 	}
 	
@@ -118,8 +127,8 @@ public class EventExecutor extends Thread {
 		}
 	}
 	
-	private void startPlayback() {
-		final String url = EVENT.getSource().getUrl();
+	private void startPlayback(EventSource source) {
+		final String url = source.getUrl();
 		
 		try {
 			this.mediaPlayer = new MediaPlayer();
@@ -129,6 +138,8 @@ public class EventExecutor extends Thread {
 			this.mediaPlayer.start();
 		} catch (Exception e) {
 			Log.e("EventExecutor.java", String.format("Unable to play audio from URL %s", url), e);
+			
+			EVENT_SCHEDULER.raiseEventError(EVENT, "Unable to play audio");
 		}
 	}
 	

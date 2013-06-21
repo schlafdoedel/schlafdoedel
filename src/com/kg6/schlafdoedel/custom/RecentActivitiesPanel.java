@@ -15,7 +15,7 @@ import com.kg6.schlafdoedel.event.Event;
 import com.kg6.schlafdoedel.event.EventScheduler;
 import com.kg6.schlafdoedelmaster.R;
 
-public class StatusPanel extends LinearLayout {
+public class RecentActivitiesPanel extends LinearLayout {
 	private final int VIEW_DATE_COLUMN_WIDTH = 100;
 	private final int VIEW_DISMISS_COLUMN_WIDTH = 160;
 	private final int VIEW_COLUMN_MARGIN = 20;
@@ -27,7 +27,7 @@ public class StatusPanel extends LinearLayout {
 	private List<StatusEntry> statusEntryList;
 	private StatusEntry defaultStatusEntry;
 
-	public StatusPanel(Activity context) {
+	public RecentActivitiesPanel(Activity context) {
 		super(context);
 		
 		CONTEXT = context;
