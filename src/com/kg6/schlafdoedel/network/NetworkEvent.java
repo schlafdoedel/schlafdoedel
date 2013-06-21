@@ -8,4 +8,5 @@ public interface NetworkEvent {
 	public void onConnectionClosed(ConnectionType connectionType);
 	public void onCommandReceived(String command);
 	public void onConnectionError(ConnectionType connectionType, String error);
+	public void onWaitingForBondedDevice(ConnectionType connectionType);
 }

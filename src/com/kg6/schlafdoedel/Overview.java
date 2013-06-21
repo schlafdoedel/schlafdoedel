@@ -227,6 +227,18 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 
 		});
 	}
+	
+	@Override
+	public void onWaitingForBondedDevice(final ConnectionType connectionType) {
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				showStatusText(String.format("Waiting for bonded %s device", NetworkConnection.GetConnectionTypePrintname(connectionType)));
+			}
+
+		});
+	}
 
 	@Override
 	public void onConnectionEstablished(final ConnectionType connectionType) {

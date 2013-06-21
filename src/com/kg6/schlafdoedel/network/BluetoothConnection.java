@@ -40,6 +40,7 @@ public class BluetoothConnection extends NetworkConnection {
 	}
 	
 	private final int CONNECTION_SLEEPTIME = 1000;
+	private final int LISTENING_SLEEPTIME = 100;
 	private final int REQUEST_ENABLE_BT = 1;
 	
 	private final Activity CONTEXT;
@@ -181,12 +182,9 @@ public class BluetoothConnection extends NetworkConnection {
 		private final BluetoothAdapter BLUETOOTH_ADAPTER;
 		
 		private BluetoothServerSocket serverSocket; 
-		private BluetoothSocket clientSocket;
 		
 		public BluetoothServer(BluetoothAdapter bluetoothAdapter) {
 			BLUETOOTH_ADAPTER = bluetoothAdapter;
-			
-			this.clientSocket = null;
 		}
 		
 		public void run() { 
@@ -202,62 +200,59 @@ public class BluetoothConnection extends NetworkConnection {
 			
 			fireOnStartListening();
 			
-			BufferedReader reader = null;
-			
 			while(isEnabled()) {
 				try { 
-                    this.clientSocket = this.serverSocket.accept(); 
+					BluetoothSocket socket = this.serverSocket.accept();
+					
+					BluetoothClientListener listener = new BluetoothClientListener(socket);
+					listener.start();
                 } catch (Exception e) { 
                     Log.e("BluetoothConnection.java", "Unable to accept Bluetooth connection", e); 
                     break; 
                 }
-				
-				try {
-					fireOnConnectionEstablished();
-					
-					reader = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream()));
-					
-					while(isEnabled() && isConnected()) {
-						String command = reader.readLine();
-						
-						if(command != null) {
-							fireOnCommandReceived(command);
-						} else {
-							break;
-						}
-					}
-				} catch (Exception e) {
-					Log.e("BluetoothConnection.java", "Unable to receive commands via Bluetooth", e); 
-					
-					fireOnConnectionError("Connection interrupted!");
-				} finally {
-					if(reader != null) {
-						try {
-							reader.close();
-						} catch (IOException e) {
-							
-						}
-					}
-				}
-				
-				fireOnConnectionClosed();
-				
-				try {
-					Thread.sleep(CONNECTION_SLEEPTIME);
-				} catch (InterruptedException e) {
-					
-				}
 			}
 		}
+	}
+	
+	private class BluetoothClientListener extends Thread {
+		private BluetoothSocket CLIENT_SOCKET;
 		
-		public boolean isConnected() {
+		public BluetoothClientListener(BluetoothSocket clientSocket) {
+			CLIENT_SOCKET = clientSocket;
+		}
+		
+		public void run() {
+			BufferedReader reader = null;
+
 			try {
-				return this.clientSocket != null && this.clientSocket.isConnected();
-			} catch (Exception e) {
-				Log.e("BluetoothConnection.java", "Unable to determine the connection status", e);
+				fireOnConnectionEstablished();
 				
-				return false;
+				reader = new BufferedReader(new InputStreamReader(CLIENT_SOCKET.getInputStream()));
+				
+				while(isEnabled() && CLIENT_SOCKET.isConnected()) {
+					String command = reader.readLine();
+					
+					if(command != null) {
+						fireOnCommandReceived(command);
+					} else {
+						break;
+					}
+				}
+			} catch (Exception e) {
+				Log.e("BluetoothConnection.java", "Unable to receive commands via Bluetooth", e); 
+				
+				fireOnConnectionError("Connection interrupted!");
+			} finally {
+				if(reader != null) {
+					try {
+						reader.close();
+					} catch (IOException e) {
+						
+					}
+				}
 			}
+			
+			fireOnConnectionClosed();
 		}
 	}
 	
@@ -265,8 +260,6 @@ public class BluetoothConnection extends NetworkConnection {
 		private final BluetoothAdapter BLUETOOTH_ADAPTER;
 		
 		private DeviceSelectionDialog deviceSelectionDialog;
-		
-		private BluetoothDevice bluetoothDevice;
 		private BluetoothSocket clientSocket;
 		
 		private List<String> messageQueue;
@@ -277,7 +270,6 @@ public class BluetoothConnection extends NetworkConnection {
 			this.messageQueue = new ArrayList<String>();
 			
 			this.deviceSelectionDialog = null;
-			this.bluetoothDevice = null;
 		}
 		
 		public void run() { 
@@ -285,23 +277,17 @@ public class BluetoothConnection extends NetworkConnection {
 			waitForBluetoothDevice();
 			
 			try {
-				UUID uuid = UUID.nameUUIDFromBytes(this.bluetoothDevice.getAddress().getBytes());
-				
-				this.clientSocket = this.bluetoothDevice.createRfcommSocketToServiceRecord(uuid);
-				this.clientSocket.connect();
-				
-				if(isConnected()) {
-					fireOnConnectionEstablished();
-				} else {
-					fireOnConnectionError("Unable to connect to sleeping phase sensor");
-					return;
-				}
-				
 				while(isEnabled() && isConnected()) {
 					if(!this.messageQueue.isEmpty()) {
 						final String command = this.messageQueue.remove(0) + "\n";
 						
 						this.clientSocket.getOutputStream().write(command.getBytes());
+					}
+					
+					try {
+						Thread.sleep(LISTENING_SLEEPTIME);
+					} catch (InterruptedException e) {
+						
 					}
 				}
 			} catch (IOException e) {
@@ -314,6 +300,8 @@ public class BluetoothConnection extends NetworkConnection {
 		}
 		
 		private void waitForBondedDevices() {
+			boolean waitingMessageFired = false;
+			
 			while(isEnabled()) {
 				Set<BluetoothDevice> availableDevices = BLUETOOTH_ADAPTER.getBondedDevices();
 				
@@ -323,7 +311,12 @@ public class BluetoothConnection extends NetworkConnection {
 					showAvailableDevices(availableDevices);
 					
 					break;
+				} else if(!waitingMessageFired) {
+					waitingMessageFired = true;
+					
+					fireOnWaitingForBondedDevice();
 				}
+				
 				
 				try {
 					Thread.sleep(CONNECTION_SLEEPTIME);
@@ -337,12 +330,13 @@ public class BluetoothConnection extends NetworkConnection {
 			if(!isConnected()) {
 				return;
 			}
+			
 			try {
 				if(this.clientSocket != null) {
 					this.clientSocket.close();
 				}
 			} catch (Exception e) {
-				Log.e("BluetoothConnection.java", "Unable to disconnect from server", e);
+				Log.e("BluetoothConnection.java", "Unable to disconnected from server", e);
 			}
 		}
 		
@@ -356,8 +350,25 @@ public class BluetoothConnection extends NetworkConnection {
 			}
 		}
 		
-		public void connectToDevice(BluetoothDevice device) {
-			this.bluetoothDevice = device;
+		public boolean connectToDevice(BluetoothDevice device) {
+			try {
+				UUID uuid = UUID.nameUUIDFromBytes(device.getAddress().getBytes());
+				
+				this.clientSocket = device.createInsecureRfcommSocketToServiceRecord(uuid);
+				this.clientSocket.connect();
+				
+				if(isConnected()) {
+					fireOnConnectionEstablished();
+				} else {
+					fireOnConnectionError("Unable to connect to sleeping phase sensor");
+				}
+			} catch (Exception e) {
+				Log.e("BluetoothConnection.java", "Unable to connect to sleeping phase sensor", e);
+				
+				fireOnConnectionError("Unable to connect to sleeping phase sensor");
+			}
+			
+			return isConnected();
 		}
 		
 		public void sendCommand(String command) {
@@ -365,7 +376,7 @@ public class BluetoothConnection extends NetworkConnection {
 		}
 		
 		private void waitForBluetoothDevice() {
-			while(isEnabled() && this.bluetoothDevice == null) {
+			while(isEnabled() && !isConnected()) {
 				try {
 					Thread.sleep(CONNECTION_SLEEPTIME);
 				} catch (InterruptedException e) {

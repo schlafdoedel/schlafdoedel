@@ -46,6 +46,12 @@ public class NetworkConnection {
 		}
 	}
 	
+	protected void fireOnWaitingForBondedDevice() {
+		for(int i = 0; i < this.eventListenerList.size(); i++) {
+			this.eventListenerList.get(i).onWaitingForBondedDevice(TYPE);
+		}
+	}
+	
 	protected void fireOnConnectionError(String error) {
 		for(int i = 0; i < this.eventListenerList.size(); i++) {
 			this.eventListenerList.get(i).onConnectionError(TYPE, error);
