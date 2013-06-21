@@ -14,7 +14,6 @@ import com.kg6.schlafdoedel.network.BluetoothConnection;
 
 public class SleepingPhaseDialog extends Dialog {
 	private final int DIALOG_MARGIN = 20;
-	private final int CONNECT_BUTTON_WIDTH = 200;
 	
 	private final Activity CONTEXT;
 	
@@ -42,7 +41,7 @@ public class SleepingPhaseDialog extends Dialog {
 		
 		//sleeping phase panel
 		LinearLayout entryLayout = new LinearLayout(getContext());
-		entryLayout.setOrientation(LinearLayout.HORIZONTAL);
+		entryLayout.setOrientation(LinearLayout.VERTICAL);
 		
 		LayoutParams entryLayoutParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 		entryLayoutParams.gravity = Gravity.CENTER_HORIZONTAL;
@@ -62,7 +61,7 @@ public class SleepingPhaseDialog extends Dialog {
 			}
 		});
 		
-		entryLayout.addView(awakeButton, new LayoutParams(CONNECT_BUTTON_WIDTH, LayoutParams.WRAP_CONTENT));
+		entryLayout.addView(awakeButton, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 		
 		//deep sleep button
 		Button deepSleepingPhaseButton = new Button(getContext());
@@ -77,7 +76,7 @@ public class SleepingPhaseDialog extends Dialog {
 			}
 		});
 		
-		entryLayout.addView(deepSleepingPhaseButton, new LayoutParams(CONNECT_BUTTON_WIDTH, LayoutParams.WRAP_CONTENT));
+		entryLayout.addView(deepSleepingPhaseButton, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 		
 		//shallow sleep button
 		Button shallowSleepingPhaseButton = new Button(getContext());
@@ -92,7 +91,7 @@ public class SleepingPhaseDialog extends Dialog {
 			}
 		});
 		
-		entryLayout.addView(shallowSleepingPhaseButton, new LayoutParams(CONNECT_BUTTON_WIDTH, LayoutParams.WRAP_CONTENT));
+		entryLayout.addView(shallowSleepingPhaseButton, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 	}
 	
 }

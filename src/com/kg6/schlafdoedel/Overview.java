@@ -15,7 +15,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.ToggleButton;
 
 import com.kg6.schlafdoedel.custom.DigitalClock;
 import com.kg6.schlafdoedel.custom.EventDefinitionDialog;
@@ -90,7 +89,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (resultCode == RESULT_OK) {
+		if (resultCode == RESULT_OK && data != null) {
 			Uri uri = data.getData();
 
 			switch (requestCode) {
@@ -237,7 +236,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			public void run() {
 				showStatusText(String.format("Connected to %s sensor",NetworkConnection.GetConnectionTypePrintname(connectionType)));
 
-				ToggleButton toggleButton = (ToggleButton) findViewById(R.id.bluetoothActiveButton);
+				ImageButton toggleButton = (ImageButton) findViewById(R.id.bluetoothActiveButton);
 				toggleButton.setBackground(getResources().getDrawable(R.drawable.button_bluetooth_on));
 			}
 
@@ -252,7 +251,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			public void run() {
 				showStatusText(String.format("Disconnected from %s sensor", NetworkConnection.GetConnectionTypePrintname(connectionType)));
 
-				ToggleButton toggleButton = (ToggleButton) findViewById(R.id.bluetoothActiveButton);
+				ImageButton toggleButton = (ImageButton) findViewById(R.id.bluetoothActiveButton);
 				toggleButton.setBackground(getResources().getDrawable(R.drawable.button_bluetooth_off));
 			}
 

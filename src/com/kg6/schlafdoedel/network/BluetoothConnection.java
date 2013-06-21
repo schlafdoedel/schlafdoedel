@@ -39,8 +39,6 @@ public class BluetoothConnection extends NetworkConnection {
 		return bluetoothConnection;
 	}
 	
-	private final String DEVICE_UUID = "00001101-0000-1000-8000-00805F9B34FB";
-	
 	private final int CONNECTION_SLEEPTIME = 1000;
 	private final int REQUEST_ENABLE_BT = 1;
 	
@@ -180,24 +178,35 @@ public class BluetoothConnection extends NetworkConnection {
 	}
 	
 	private class BluetoothServer extends Thread {
-		private final BluetoothServerSocket SERVER_SOCKET; 
+		private final BluetoothAdapter BLUETOOTH_ADAPTER;
 		
+		private BluetoothServerSocket serverSocket; 
 		private BluetoothSocket clientSocket;
 		
-		public BluetoothServer(BluetoothAdapter bluetoothAdapter) throws IOException {
-			SERVER_SOCKET = bluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord("Overview", UUID.fromString(DEVICE_UUID)); 
+		public BluetoothServer(BluetoothAdapter bluetoothAdapter) {
+			BLUETOOTH_ADAPTER = bluetoothAdapter;
 			
 			this.clientSocket = null;
 		}
 		
 		public void run() { 
+			try {
+				UUID uuid = UUID.nameUUIDFromBytes(BLUETOOTH_ADAPTER.getAddress().getBytes());
+				
+				this.serverSocket = BLUETOOTH_ADAPTER.listenUsingInsecureRfcommWithServiceRecord("Overview", uuid); 
+			} catch (Exception e) {
+				Log.e("BluetoothConnection.java", "Unable to start the server socket", e);
+				
+				fireOnConnectionError("Unable to start the server socket");
+			}
+			
 			fireOnStartListening();
 			
 			BufferedReader reader = null;
 			
 			while(isEnabled()) {
 				try { 
-                    this.clientSocket = SERVER_SOCKET.accept(); 
+                    this.clientSocket = this.serverSocket.accept(); 
                 } catch (Exception e) { 
                     Log.e("BluetoothConnection.java", "Unable to accept Bluetooth connection", e); 
                     break; 
@@ -276,7 +285,9 @@ public class BluetoothConnection extends NetworkConnection {
 			waitForBluetoothDevice();
 			
 			try {
-				this.clientSocket = this.bluetoothDevice.createRfcommSocketToServiceRecord(UUID.fromString(DEVICE_UUID));
+				UUID uuid = UUID.nameUUIDFromBytes(this.bluetoothDevice.getAddress().getBytes());
+				
+				this.clientSocket = this.bluetoothDevice.createRfcommSocketToServiceRecord(uuid);
 				this.clientSocket.connect();
 				
 				if(isConnected()) {
