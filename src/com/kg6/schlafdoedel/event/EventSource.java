@@ -31,4 +31,15 @@ public class EventSource {
 	public void setAttribute(String key, Object value) {
 		this.attributes.put(key, value);
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if(!(o instanceof EventSource)) {
+			return false;
+		}
+		
+		EventSource peer = (EventSource)o;
+		
+		return peer.TYPE == TYPE;
+	}
 }

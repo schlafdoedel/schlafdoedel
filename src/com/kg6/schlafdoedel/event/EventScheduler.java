@@ -219,6 +219,28 @@ public class EventScheduler extends Thread {
 	private void handleEvent(final Event event) {
 		setScreenBrightness(1);
 		
+		//If there is an event with the same source type currently in the list, remove it
+		List<EventSource> eventSourceList = event.getEventSourceList();
+		
+		for(int i = 0; i < this.eventExecutorList.size(); i++) {
+			EventExecutor executor = this.eventExecutorList.get(i);
+			List<EventSource> executedSourceList = executor.getEvent().getEventSourceList();
+			
+			boolean sourceFound = false;
+			
+			for(EventSource eventSource : executedSourceList) {
+				if(eventSourceList.contains(eventSource)) {
+					sourceFound = true;
+					break;
+				}
+			}
+			
+			if(sourceFound) {
+				executor.dismiss();
+			}
+		}
+		
+		//Start the event
 		EventExecutor executor = new EventExecutor(CONTEXT, this, event, CONTAINER);
 		executor.start();
 		

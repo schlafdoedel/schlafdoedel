@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -154,12 +155,14 @@ public class RecentActivitiesPanel extends LinearLayout {
 		//date
 		TextView entryDateView = new TextView(CONTEXT);
 		entryDateView.setText(Util.GetTimeOfDatePrintableFormat(new Date(System.currentTimeMillis())));
+		entryDateView.setTextColor(Color.WHITE);
 		
 		entryLayout.addView(entryDateView, new LayoutParams(VIEW_DATE_COLUMN_WIDTH, LayoutParams.WRAP_CONTENT));
 		
 		//description
 		TextView entryDescriptionView = new TextView(CONTEXT);
 		entryDescriptionView.setText(entry.title);
+		entryDescriptionView.setTextColor(Color.WHITE);
 		
 		LayoutParams entryDescriptionViewParams = new LayoutParams(Util.GetDeviceWidth(CONTEXT) - VIEW_DATE_COLUMN_WIDTH - VIEW_DISMISS_COLUMN_WIDTH - 2 * VIEW_COLUMN_MARGIN, LayoutParams.WRAP_CONTENT);
 		
@@ -196,6 +199,7 @@ public class RecentActivitiesPanel extends LinearLayout {
 		//description
 		TextView entryDescriptionView = new TextView(CONTEXT);
 		entryDescriptionView.setText(statusEntry.title);
+		entryDescriptionView.setTextColor(Color.WHITE);
 		
 		entryLayout.addView(entryDescriptionView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 		

@@ -76,4 +76,15 @@ public class Util {
 		
 		return "unknown";
 	}
+	
+	public static String GetTrimmedText(String text, int maxTextLength) {
+		if(text.length() < maxTextLength || maxTextLength <= 3) {
+			return text;
+		}
+		
+		String prefix = text.substring(0, maxTextLength / 2);
+		String postfix = text.substring(text.length() - (maxTextLength / 2 + 3));
+		
+		return prefix + "..." + postfix;
+	}
 }

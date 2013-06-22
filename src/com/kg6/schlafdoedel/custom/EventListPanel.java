@@ -5,6 +5,7 @@ import java.util.List;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -13,10 +14,13 @@ import android.widget.TextView;
 import com.kg6.schlafdoedel.event.Event;
 import com.kg6.schlafdoedel.event.EventNotification;
 import com.kg6.schlafdoedel.event.EventScheduler;
+import com.kg6.schlafdoedel.event.EventSource;
+import com.kg6.schlafdoedel.event.EventSource.SourceType;
 
 public class EventListPanel extends LinearLayout implements EventNotification {
 	private final int VIEW_DISMISS_COLUMN_WIDTH = 160;
 	private final int VIEW_COLUMN_MARGIN = 20;
+	private final int VIEW_SUBTITLE_LENGTH = 75;
 	
 	private final Activity CONTEXT;
 	
@@ -48,24 +52,53 @@ public class EventListPanel extends LinearLayout implements EventNotification {
 		removeAllViews();
 		
 		if(eventList.size() == 0) {
-			addEventEntry("No event defined", null);
+			addEventEntry("No event defined", null, null);
 		} else {
 			for(Event event : eventList) {
-				addEventEntry(String.format("%s - %s: %s", Util.GetPrintableTimeOfDay(event.getStart()), Util.GetPrintableTimeOfDay(event.getEnd()), event.getTitle()), event);
+				String subtitle = "";
+				
+				for(EventSource eventSource : event.getEventSourceList()) {
+					if(subtitle.length() > 0) {
+						subtitle += "\n";
+					}
+					
+					if(eventSource.getSourceType() == SourceType.Music) {
+						subtitle += String.format("Music: %s", Util.GetTrimmedText(eventSource.getUrl(), VIEW_SUBTITLE_LENGTH));
+					} else {
+						subtitle += String.format("Image: %s", Util.GetTrimmedText(eventSource.getUrl(), VIEW_SUBTITLE_LENGTH));
+					}
+				}
+				
+				addEventEntry(String.format("%s - %s: %s", Util.GetPrintableTimeOfDay(event.getStart()), Util.GetPrintableTimeOfDay(event.getEnd()), event.getTitle()), subtitle, event);
 			}
 		}
 	}
 
-	private void addEventEntry(String text, final Event event) {
+	private void addEventEntry(String title, String subtitle, final Event event) {
 		LinearLayout entryLayout = new LinearLayout(CONTEXT);
 		entryLayout.setOrientation(LinearLayout.HORIZONTAL);
 		
 		addView(entryLayout, getStatusEntryParams());
 		
-		TextView textView = new TextView(CONTEXT);
-		textView.setText(text);
+		LinearLayout textLayout = new LinearLayout(CONTEXT);
+		textLayout.setOrientation(LinearLayout.VERTICAL);
 		
-		entryLayout.addView(textView, new LayoutParams(Util.GetDeviceWidth(CONTEXT) - VIEW_DISMISS_COLUMN_WIDTH - 2 * VIEW_COLUMN_MARGIN, LayoutParams.WRAP_CONTENT));
+		entryLayout.addView(textLayout, new LayoutParams(Util.GetDeviceWidth(CONTEXT) - VIEW_DISMISS_COLUMN_WIDTH - 2 * VIEW_COLUMN_MARGIN, LayoutParams.WRAP_CONTENT));
+		
+		TextView titleTextView = new TextView(CONTEXT);
+		titleTextView.setTextColor(Color.WHITE);
+		titleTextView.setTextSize(13);
+		titleTextView.setText(title);
+		
+		textLayout.addView(titleTextView, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+		
+		if(subtitle != null && subtitle.length() > 0) {
+			TextView subtitleTextView = new TextView(CONTEXT);
+			subtitleTextView.setTextSize(10);
+			subtitleTextView.setText(subtitle);
+			
+			textLayout.addView(subtitleTextView, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+		}
 		
 		if(event != null) {
 			Button deleteButton = new Button(CONTEXT);

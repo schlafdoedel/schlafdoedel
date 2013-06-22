@@ -194,10 +194,10 @@ public class EventDefinitionDialog extends Dialog {
 		addRow(contentLayout, "Repetition", repetitionLayout);
 		
 		//radio event type
+		final List<Pair<String, String>> internetRadioList = getInternetRadioList();
+		
 		List<String> spinnerEntries = new ArrayList<String>();
 		spinnerEntries.add("No internet radio selected");
-		
-		List<Pair<String, String>> internetRadioList = getInternetRadioList();
 		
 		for(Pair<String, String> entry : internetRadioList) {
 			spinnerEntries.add(entry.first);
@@ -205,10 +205,10 @@ public class EventDefinitionDialog extends Dialog {
 		
 	    ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(CONTEXT, android.R.layout.simple_spinner_dropdown_item, spinnerEntries);
 	    
-	    Spinner spinner = new Spinner(CONTEXT);
-	    spinner.setAdapter(spinnerArrayAdapter);
+	    final Spinner radioSourceSpinner = new Spinner(CONTEXT);
+	    radioSourceSpinner.setAdapter(spinnerArrayAdapter);
 		
-	    addRow(contentLayout, "Play internet radio", spinner);
+	    addRow(contentLayout, "Play internet radio", radioSourceSpinner);
 		
 		//music event type
 		LinearLayout musicSourceLayout = new LinearLayout(CONTEXT);
@@ -314,6 +314,14 @@ public class EventDefinitionDialog extends Dialog {
 				}
 				
 				//Add event sources
+				final String selectedInternetRadio = radioSourceSpinner.getSelectedItem().toString();
+				
+				for(Pair<String, String> entry : internetRadioList) {
+					if(entry.first.compareTo(selectedInternetRadio) == 0) {
+						event.addEventSource(new EventSource(SourceType.Music, entry.second));
+					}
+				}
+				
 				if(eventMusicSource.length() > 0) {
 					event.addEventSource(new EventSource(SourceType.Music, eventMusicSource));
 				}
