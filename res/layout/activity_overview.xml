@@ -58,7 +58,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:layout_marginTop="48dp"
-        android:layout_marginBottom="290dp" >
+        android:layout_marginBottom="270dp" >
 	
 	    <com.kg6.schlafdoedel.custom.DigitalClock
 	            android:id="@+id/digitalClock"
@@ -78,7 +78,7 @@
     <LinearLayout
         android:id="@+id/statusPanel"
         android:layout_width="fill_parent"
-        android:layout_height="270dp"
+        android:layout_height="250dp"
         android:layout_alignBottom="@+id/visualizationPanel"
 	    android:layout_alignParentBottom="true"
         android:orientation="vertical" >
