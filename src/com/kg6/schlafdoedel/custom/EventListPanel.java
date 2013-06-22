@@ -3,6 +3,8 @@ package com.kg6.schlafdoedel.custom;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -73,7 +75,27 @@ public class EventListPanel extends LinearLayout implements EventNotification {
 				
 				@Override
 				public void onClick(View v) {
-					eventScheduler.removeEvent(event);
+					AlertDialog dialog = new AlertDialog.Builder(CONTEXT).create();
+					dialog.setCancelable(false);
+					dialog.setMessage("Are you sure you want to delete this event?");
+					
+					dialog.setButton(AlertDialog.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
+						
+						public void onClick(DialogInterface dialog, int which) {
+							eventScheduler.removeEvent(event);
+							
+							dialog.dismiss();
+						}
+					});
+					
+					dialog.setButton(AlertDialog.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
+						
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+						}
+					});
+					
+					dialog.show();
 				}
 			});
 			

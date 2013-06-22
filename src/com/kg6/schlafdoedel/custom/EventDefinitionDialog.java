@@ -105,7 +105,7 @@ public class EventDefinitionDialog extends Dialog {
 		
 		final WheelView startWheelMinutes = new WheelView(CONTEXT);
 		startWheelMinutes.setViewAdapter(new NumericWheelAdapter(CONTEXT, 0, 59, "%02d"));
-		startWheelHours.setCurrentItem(expectedWakeupTime[1]);
+		startWheelMinutes.setCurrentItem(expectedWakeupTime[1]);
 		startWheelMinutes.setCyclic(true);
 		
 		startWheelLayout.addView(startWheelMinutes, new LayoutParams(WHEEL_WIDTH, LayoutParams.WRAP_CONTENT));
@@ -400,7 +400,7 @@ public class EventDefinitionDialog extends Dialog {
 		//TODO: Access the kalendar to get next events
 		
 		return new int[] {
-			calendar.get(Calendar.HOUR_OF_DAY),
+			calendar.get(Calendar.HOUR_OF_DAY) + 1,
 			calendar.get(Calendar.MINUTE),
 		};
 	}

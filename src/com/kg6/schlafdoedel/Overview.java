@@ -1,14 +1,17 @@
 package com.kg6.schlafdoedel;
 
+import java.util.HashMap;
+import java.util.Set;
+
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -38,6 +41,8 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	private EventDefinitionDialog eventDefinitionDialog;
 	private RecentActivitiesPanel recentActivitiesPanel;
 	private EventListPanel eventListPanel;
+	
+	private HashMap<Integer, View> availableStatusTabsHash;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -45,9 +50,10 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		setContentView(R.layout.activity_overview);
 
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		setScreenBrightness(Configuration.WINDOW_MAX_BRIGHTNESS);
 
 		this.eventDefinitionDialog = null;
+		
+		this.availableStatusTabsHash = new HashMap<Integer, View>();
 
 		addOptionsButtonListener();
 		addBluetoothButtonListener();
@@ -63,7 +69,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 
 	private void createTestEvents() {
 		Event event = new Event("Wake me up", Util.GetMillisecondsOfDay(13, 12,00), Util.GetMillisecondsOfDay(23, 30, 00));
-		event.addEventSource(new EventSource(SourceType.Music,"http://stream.antenne1.de/stream1/livestream.mp3"));
+		event.addEventSource(new EventSource(SourceType.Music,"http://onair.krone.at/kronehit.mp3"));
 		event.addEventSource(new EventSource(SourceType.Image,"http://3.bp.blogspot.com/-J0ms_mKUTMg/TuS1QPg8LqI/AAAAAAAAGHA/1IobgDijAiQ/s1600/sunrise.jpg"));
 
 		for (int i = 0; i < 7; i++) {
@@ -118,6 +124,8 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	private void initializeEventScheduler() {
 		this.eventScheduler = EventScheduler.CreateInstance(this,(FrameLayout) findViewById(R.id.visualizationPanel));
 		this.eventScheduler.addEventNotificationListener(this);
+		
+		this.eventScheduler.setScreenBrightness(Configuration.WINDOW_MAX_BRIGHTNESS);
 
 		if (!this.eventScheduler.isAlive()) {
 			this.eventScheduler.start();
@@ -140,39 +148,54 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	}
 
 	private void addStatusPanel() {
-		final LinearLayout statusPanelContainer = (LinearLayout) findViewById(R.id.statusPanelContent);
-		
-		Button recentActivitiesButton = (Button) findViewById(R.id.recentActivitiesButton);
+		final Button recentActivitiesButton = (Button) findViewById(R.id.recentActivitiesButton);
 		
 		recentActivitiesButton.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
-				if(recentActivitiesPanel != null) {
-					statusPanelContainer.removeAllViews();
-					statusPanelContainer.addView(recentActivitiesPanel, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-				}
+				switchToTab(R.id.recentActivitiesButton);
 			}
 		});
 		
-		Button eventListButton = (Button) findViewById(R.id.eventListButton);
+		final Button eventListButton = (Button) findViewById(R.id.eventListButton);
 		
 		eventListButton.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
-				if(eventListPanel != null) {
-					statusPanelContainer.removeAllViews();
-					statusPanelContainer.addView(eventListPanel, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-				}
+				switchToTab(R.id.eventListButton);
 			}
 		});
 		
 		this.recentActivitiesPanel = new RecentActivitiesPanel(this);
 		this.eventListPanel = new EventListPanel(this);
 		
+		//Add items to the status tab hash
+		this.availableStatusTabsHash.put(R.id.recentActivitiesButton, this.recentActivitiesPanel);
+		this.availableStatusTabsHash.put(R.id.eventListButton, this.eventListPanel);
+		
 		//Show the recent activities panel by default
-		statusPanelContainer.addView(this.recentActivitiesPanel, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+		switchToTab(R.id.recentActivitiesButton);
+	}
+	
+	private void switchToTab(int buttonId) {
+		final LinearLayout statusPanelContainer = (LinearLayout) findViewById(R.id.statusPanelContent);
+		statusPanelContainer.removeAllViews();
+		
+		Set<Integer> tabButtonIdSet = this.availableStatusTabsHash.keySet();
+		
+		for(Integer tabButtonId : tabButtonIdSet) {
+			Button tabButton = (Button) findViewById(tabButtonId);
+			
+			if(tabButtonId == buttonId) {
+				tabButton.setBackgroundColor(Color.GREEN);
+				
+				statusPanelContainer.addView(this.availableStatusTabsHash.get(tabButtonId), new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+			} else {
+				tabButton.setBackgroundColor(Color.WHITE);
+			}
+		}
 	}
 
 	private void addOptionsButtonListener() {
@@ -303,10 +326,12 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		}
 
 		// Switch brightness
-		if (command.compareTo(Configuration.COMMAND_SLEEPING_PHASE_AWAKE) == 0) {
-			setScreenBrightness(Configuration.WINDOW_MAX_BRIGHTNESS);
-		} else {
-			setScreenBrightness(Configuration.WINDOW_MIN_BRIGHTNESS);
+		if(this.eventScheduler != null) {
+			if (command.compareTo(Configuration.COMMAND_SLEEPING_PHASE_AWAKE) == 0) {
+				this.eventScheduler.setScreenBrightness(Configuration.WINDOW_MAX_BRIGHTNESS);
+			} else {
+				this.eventScheduler.setScreenBrightness(Configuration.WINDOW_MIN_BRIGHTNESS);
+			}
 		}
 	}
 	
@@ -340,14 +365,5 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		if (this.recentActivitiesPanel != null) {
 			this.recentActivitiesPanel.addStatusText(text);
 		}
-	}
-
-	private void setScreenBrightness(float brightness) {
-		Window myWindow = getWindow();
-
-		WindowManager.LayoutParams winParams = myWindow.getAttributes();
-		winParams.screenBrightness = brightness;
-
-		myWindow.setAttributes(winParams);
 	}
 }

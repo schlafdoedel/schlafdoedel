@@ -196,6 +196,8 @@ public class BluetoothConnection extends NetworkConnection {
 				Log.e("BluetoothConnection.java", "Unable to start the server socket", e);
 				
 				fireOnConnectionError("Unable to start the server socket");
+				
+				return;
 			}
 			
 			fireOnStartListening();

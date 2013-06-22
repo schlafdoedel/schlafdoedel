@@ -63,7 +63,7 @@
 	    <com.kg6.schlafdoedel.custom.DigitalClock
 	            android:id="@+id/digitalClock"
 	            android:layout_width="340dp"
-	            android:layout_height="130dp"
+	            android:layout_height="100dp"
 	            android:layout_gravity="center_horizontal" />
 	        
 	    <FrameLayout
@@ -85,25 +85,24 @@
 	    
         <LinearLayout
         android:id="@+id/statusPanel"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal" >
+        android:orientation="horizontal"
+        android:background="#FFFFFF" >
 
 	        <Button
 	            android:id="@+id/recentActivitiesButton"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:textSize="18sp"
-	            android:text="Recent activities"
-	            android:layout_marginBottom="10dp" />
+	            android:text="Recent activities" />
 	        
 	        <Button
 	            android:id="@+id/eventListButton"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:textSize="18sp"
-	            android:text="Event list"
-	            android:layout_marginBottom="10dp" />
+	            android:text="Event list" />
     
 	    </LinearLayout>
 	        

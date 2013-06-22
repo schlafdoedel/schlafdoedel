@@ -6,6 +6,8 @@ import java.util.List;
 
 import android.app.Activity;
 import android.util.Log;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 import com.kg6.schlafdoedel.Configuration;
@@ -96,18 +98,27 @@ public class EventScheduler extends Thread {
 	
 	public Event getNextUpcomingEvent() {
 		Event nextEvent = null;
+		Event firstEvent = null;
 		
 		final long timeOfDay = System.currentTimeMillis() - Util.GetMillisecondsOfDay();
 		
 		for(int i = 0; i < this.eventList.size(); i++) {
 			Event event = this.eventList.get(i);
 			
+			if(firstEvent == null || event.getStart() < firstEvent.getStart()) {
+				firstEvent = event;
+			}
+			
 			if((nextEvent == null || event.getStart() < nextEvent.getStart()) && event.getStart() > timeOfDay) {
 				nextEvent = event;
 			}
 		}
 		
-		return nextEvent;
+		if(nextEvent != null) {
+			return nextEvent;
+		}
+		
+		return firstEvent;
 	}
 	
 	public void dismissEvent(Event event) {
@@ -119,7 +130,7 @@ public class EventScheduler extends Thread {
 				
 				fireOnEventDismissed(eventExecutor.getEvent());
 				
-				removeEvent(event);
+				this.eventExecutorList.remove(i);
 			}
 		}
 	}
@@ -182,7 +193,32 @@ public class EventScheduler extends Thread {
 		return this.enabled;
 	}
 	
+	public void setScreenBrightness(final float brightness) {
+		CONTEXT.runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				float nextScreenBrightness = brightness;
+				
+				if(eventExecutorList.size() > 0) {
+					nextScreenBrightness = 1;
+				}
+				
+				//Modify the brightness
+				Window myWindow = CONTEXT.getWindow();
+
+				WindowManager.LayoutParams winParams = myWindow.getAttributes();
+				winParams.screenBrightness = nextScreenBrightness;
+
+				myWindow.setAttributes(winParams);
+			}
+
+		});
+	}
+	
 	private void handleEvent(final Event event) {
+		setScreenBrightness(1);
+		
 		EventExecutor executor = new EventExecutor(CONTEXT, this, event, CONTAINER);
 		executor.start();
 		

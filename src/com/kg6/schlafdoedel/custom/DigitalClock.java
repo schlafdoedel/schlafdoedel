@@ -22,7 +22,7 @@ public class DigitalClock extends View {
 	private final int TIMER_SLEEPTIME = 1000;
 	
 	private final int MINIMUM_WIDTH = 440;
-	private final int MINIMUM_HEIGHT = 120;
+	private final int MINIMUM_HEIGHT = 200;
 	
 	private final int VIEW_TOP_MARGIN = 20;
 	private final int VIEW_LEFT_MARGIN = 20;
