@@ -1,7 +1,9 @@
 package com.kg6.schlafdoedel.custom;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import kankan.wheel.widget.OnWheelChangedListener;
 import kankan.wheel.widget.WheelView;
@@ -10,7 +12,9 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.util.Pair;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -18,6 +22,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -187,6 +192,23 @@ public class EventDefinitionDialog extends Dialog {
 		allWorkdaysLayout.addView(allWorkdaysButton, allWorkdaysButtonParams);
 		
 		addRow(contentLayout, "Repetition", repetitionLayout);
+		
+		//radio event type
+		List<String> spinnerEntries = new ArrayList<String>();
+		spinnerEntries.add("No internet radio selected");
+		
+		List<Pair<String, String>> internetRadioList = getInternetRadioList();
+		
+		for(Pair<String, String> entry : internetRadioList) {
+			spinnerEntries.add(entry.first);
+		}
+		
+	    ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(CONTEXT, android.R.layout.simple_spinner_dropdown_item, spinnerEntries);
+	    
+	    Spinner spinner = new Spinner(CONTEXT);
+	    spinner.setAdapter(spinnerArrayAdapter);
+		
+	    addRow(contentLayout, "Play internet radio", spinner);
 		
 		//music event type
 		LinearLayout musicSourceLayout = new LinearLayout(CONTEXT);
@@ -361,6 +383,15 @@ public class EventDefinitionDialog extends Dialog {
 	
 	private String getDefaultEventTitle() {
 		return "New event " + Event.GetNextEventId();
+	}
+	
+	private List<Pair<String, String>> getInternetRadioList() {
+		List<Pair<String, String>> internetRadioList = new ArrayList<Pair<String, String>>();
+		internetRadioList.add(new Pair<String, String>("Antenne 1 (pop)", "http://stream.antenne1.de/stream1/livestream.mp3"));
+		internetRadioList.add(new Pair<String, String>("Kronehit (pop)", "http://onair.krone.at/kronehit.mp3"));
+		internetRadioList.add(new Pair<String, String>("Klassik radio (classic)", "http://edge.live.mp3.mdn.newmedia.nacamar.net/klassikradio128/livestream.mp3"));
+		
+		return internetRadioList;
 	}
 
 	private int[] getNextWakeUpTime() {

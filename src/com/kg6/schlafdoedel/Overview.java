@@ -62,8 +62,8 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	}
 
 	private void createTestEvents() {
-		Event event = new Event("Wake me up", Util.GetMillisecondsOfDay(13, 12,00), Util.GetMillisecondsOfDay(14, 30, 00));
-		//event.addEventSource(new EventSource(SourceType.Music,"http://www.cr944.at:8000/cr944-high.mp3"));
+		Event event = new Event("Wake me up", Util.GetMillisecondsOfDay(13, 12,00), Util.GetMillisecondsOfDay(23, 30, 00));
+		event.addEventSource(new EventSource(SourceType.Music,"http://stream.antenne1.de/stream1/livestream.mp3"));
 		event.addEventSource(new EventSource(SourceType.Image,"http://3.bp.blogspot.com/-J0ms_mKUTMg/TuS1QPg8LqI/AAAAAAAAGHA/1IobgDijAiQ/s1600/sunrise.jpg"));
 
 		for (int i = 0; i < 7; i++) {
