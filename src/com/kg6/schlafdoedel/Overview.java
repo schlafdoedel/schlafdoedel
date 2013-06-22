@@ -342,23 +342,42 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 
 	@Override
 	public void onEventRaised(final Event event) {
-		if (this.recentActivitiesPanel != null) {
-			this.recentActivitiesPanel.addStatusText(event);
-		}
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				if (recentActivitiesPanel != null) {
+					recentActivitiesPanel.addStatusText(event);
+				}
+			}
+
+		});
 	}
 
 	@Override
-	public void onEventDismissed(Event event) {
-		if (this.recentActivitiesPanel != null) {
-			this.recentActivitiesPanel.removeStatusText(event);
-		}
+	public void onEventDismissed(final Event event) {
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				if (recentActivitiesPanel != null) {
+					recentActivitiesPanel.removeStatusText(event);
+				}
+			}
+
+		});
 	}
 	
 	@Override
-	public void onEventError(Event event, String error) {
-		if (this.recentActivitiesPanel != null) {
-			this.recentActivitiesPanel.addStatusText(String.format("Error in event %s: %s", event.getTitle(), error));
-		}
+	public void onEventError(final Event event, final String error) {
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				showStatusText(String.format("Error in event %s: %s", event.getTitle(), error));
+			}
+
+		});
 	}
 
 	private void showStatusText(String text) {
