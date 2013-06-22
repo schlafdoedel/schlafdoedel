@@ -189,7 +189,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			Button tabButton = (Button) findViewById(tabButtonId);
 			
 			if(tabButtonId == buttonId) {
-				tabButton.setBackgroundColor(Color.GREEN);
+				tabButton.setBackgroundColor(Color.GRAY);
 				
 				statusPanelContainer.addView(this.availableStatusTabsHash.get(tabButtonId), new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 			} else {

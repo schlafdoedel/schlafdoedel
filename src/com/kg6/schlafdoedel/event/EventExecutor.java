@@ -6,24 +6,30 @@ import java.net.URL;
 import java.util.List;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 
 public class EventExecutor extends Thread {
+	private final int EVENT_ANIMATION_SLEEPTIME = 50;
+	
 	private final Activity CONTEXT;
 	private final FrameLayout CONTAINER;
 	private final EventScheduler EVENT_SCHEDULER;
 	private final Event EVENT;
 	
 	private MediaPlayer mediaPlayer;
-	private ImageView imageView;
+	private EventAnimationPanel animationPanel;
 	private boolean enabled;	
 	
 	public EventExecutor(Activity context, EventScheduler eventScheduler, Event event, FrameLayout container) {
@@ -33,9 +39,33 @@ public class EventExecutor extends Thread {
 		EVENT = event;
 		
 		this.mediaPlayer = null;
-		this.imageView = null;
+		this.animationPanel = null;
 		
 		this.enabled = true;
+	}
+	
+	private void cleanup() {
+		CONTEXT.runOnUiThread(new Runnable() {
+					
+			@Override
+			public void run() {
+				stopPlayback();
+				
+				try {
+					if(animationPanel != null) {
+						animationPanel.cleanup();
+						
+						CONTAINER.removeView(animationPanel);
+					}
+					
+					for(int i = 0; i < CONTAINER.getChildCount(); i++) {
+						CONTAINER.getChildAt(i).setVisibility(View.VISIBLE);
+					}
+				} catch (Exception e) {
+					Log.e("EventExecutor.java", "Unable to cleanup the event image view", e);
+				}
+			}
+		});
 	}
 	
 	public Event getEvent() {
@@ -51,79 +81,70 @@ public class EventExecutor extends Thread {
 	}
 	
 	public void run() {
-		List<EventSource> eventSourceList = EVENT.getEventSourceList();
-		
-		for(EventSource source : eventSourceList) {
-			switch(source.getSourceType()) {
-				case Image:
-					showImage(source);
-					break;
-				case Music:
-					startPlayback(source);
-					break;
+		try {
+			prepareViewContainer();
+			
+			List<EventSource> eventSourceList = EVENT.getEventSourceList();
+			
+			for(EventSource source : eventSourceList) {
+				switch(source.getSourceType()) {
+					case Image:
+						loadEventBitmap(source);					
+						break;
+					case Music:
+						startPlayback(source);
+						break;
+				}
 			}
-		}
-		
-		while(this.enabled) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
+			
+			while(this.enabled) {
+				if(this.animationPanel != null) {
+					this.animationPanel.postInvalidate();
+				}
 				
+				try {
+					Thread.sleep(EVENT_ANIMATION_SLEEPTIME);
+				} catch (InterruptedException e) {
+					
+				}
 			}
-		}
-		
-		for(EventSource source : eventSourceList) {
-			switch(source.getSourceType()) {
-				case Image:
-					hideImage();
-					break;
-				case Music:
-					stopPlayback();
-					break;
-			}
+		} catch (Exception e) {
+			Log.e("EventExecutor.java", "Unable to execute event", e);
+		} finally {
+			cleanup();
 		}
 	}
 	
-	private void showImage(EventSource source) {
-		final Bitmap bitmap = loadBitmap(source);
-		
-		if(bitmap != null) {
-			CONTEXT.runOnUiThread(new Runnable() {
-				
-				@Override
-				public void run() {
-					for(int i = 0; i < CONTAINER.getChildCount(); i++) {
-						CONTAINER.getChildAt(i).setVisibility(View.GONE);
-					}
-					
-					if(imageView != null) {
-						CONTAINER.removeView(imageView);
-					}
-					
-					imageView = new ImageView(CONTEXT);
-					imageView.setImageBitmap(bitmap);
-					
-					CONTAINER.addView(imageView, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+	private void prepareViewContainer() {
+		CONTEXT.runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				for(int i = 0; i < CONTAINER.getChildCount(); i++) {
+					CONTAINER.getChildAt(i).setVisibility(View.GONE);
 				}
-			});
-		} else {
-			EVENT_SCHEDULER.raiseEventError(EVENT, "Unable to load the image");
-		}
+				
+				if(animationPanel != null) {
+					CONTAINER.removeView(animationPanel);
+				}
+				
+				animationPanel = new EventAnimationPanel(CONTEXT);
+				
+				CONTAINER.addView(animationPanel, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+			}
+			
+		});
 	}
 	
-	private void hideImage() {
-		if(this.imageView != null) {
-			CONTEXT.runOnUiThread(new Runnable() {
-				
-				@Override
-				public void run() {
-					CONTAINER.removeView(imageView);
-					
-					for(int i = 0; i < CONTAINER.getChildCount(); i++) {
-						CONTAINER.getChildAt(i).setVisibility(View.VISIBLE);
-					}
-				}
-			});
+	private void loadEventBitmap(EventSource source) {
+		if(this.animationPanel != null) {
+			Bitmap eventBitmap = loadBitmap(source, this.animationPanel.getWidth());
+			
+			if(eventBitmap != null) {
+				this.animationPanel.setEventBitmap(eventBitmap);
+			} else {
+				EVENT_SCHEDULER.raiseEventError(EVENT, "Unable to load the image");
+			}
 		}
 	}
 	
@@ -144,21 +165,32 @@ public class EventExecutor extends Thread {
 	}
 	
 	private void stopPlayback() {
-		if(this.mediaPlayer != null) {
-			this.mediaPlayer.stop();
-			this.mediaPlayer.release();
+		try {
+			if(this.mediaPlayer != null) {
+				this.mediaPlayer.stop();
+				this.mediaPlayer.release();
+			}
+		} catch (Exception e) {
+			Log.e("EventExecutor.java", "Unable to stop audio playback", e);
 		}
 	}
 	
-	public static Bitmap loadBitmap(EventSource source) {
-        Bitmap bitmap = null;
+	private Bitmap loadBitmap(EventSource source, float width) {
+        Bitmap loadedBitmap = null;
+        Bitmap scaledBitmap = null;
         
         InputStream inputStream = null;
         
         try {
         	inputStream = new URL(source.getUrl()).openStream();
-            
-            bitmap = BitmapFactory.decodeStream(inputStream);
+        	
+        	//Load the bitmap
+        	loadedBitmap = BitmapFactory.decodeStream(inputStream);
+        	
+        	//Scale the bitmap to the output size
+        	float ratio = (float)loadedBitmap.getWidth() / (float)loadedBitmap.getHeight();
+        	
+        	scaledBitmap = Bitmap.createScaledBitmap(loadedBitmap, (int)width, (int)(width / ratio), true);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -169,8 +201,94 @@ public class EventExecutor extends Thread {
 					
 				}
         	}
+        	
+        	if(loadedBitmap != null) {
+        		try {
+        			loadedBitmap.recycle();
+        			loadedBitmap = null;
+        		} catch (Exception e) {
+        			
+        		}
+        	}
         }
         
-        return bitmap;
+        return scaledBitmap;
+	}
+	
+	private class EventAnimationPanel extends View {
+		private final float ANIMATION_TEXTSIZE_MAXIMUM = 70f;
+		private final float ANIMATION_TEXTSIZE_MINIMUM = 10f;
+		private final float ANIMATION_TEXTSIZE_INCREMENT = 1f;
+		
+		private final Paint TEXT_FOREGROUND_PAINT;
+		private final Paint TEXT_BACKGROUND_PAINT;
+		
+		private Bitmap eventBitmap;
+		private float animationTextSize;
+		private float animationDirection;
+
+		public EventAnimationPanel(Context context) {
+			super(context);
+			
+			TEXT_FOREGROUND_PAINT = new Paint();
+			TEXT_FOREGROUND_PAINT.setColor(Color.WHITE);
+			TEXT_FOREGROUND_PAINT.setStyle(Style.FILL);
+			TEXT_FOREGROUND_PAINT.setFlags(Paint.ANTI_ALIAS_FLAG);
+			
+			TEXT_BACKGROUND_PAINT = new Paint();
+			TEXT_BACKGROUND_PAINT.setColor(Color.BLACK);
+			TEXT_BACKGROUND_PAINT.setStyle(Style.STROKE);
+			TEXT_BACKGROUND_PAINT.setStrokeWidth(2);
+			TEXT_BACKGROUND_PAINT.setFlags(Paint.ANTI_ALIAS_FLAG);
+			
+			this.animationTextSize = ANIMATION_TEXTSIZE_MINIMUM;
+			this.animationDirection = 1;
+		}
+		
+		public void cleanup() {
+			try {
+				if(this.eventBitmap != null) {
+					this.eventBitmap.recycle();
+					this.eventBitmap = null;
+				}
+			} catch (Exception e) {
+				Log.e("EventExecutor.java", "Unable to recycle event bitmap", e);
+			}
+		}
+		
+		public void setEventBitmap(Bitmap bitmap) {
+			this.eventBitmap = bitmap;
+		}
+
+		@Override
+		protected void onDraw(Canvas canvas) {
+			super.onDraw(canvas);
+			
+			final int halfWidth = getWidth() / 2;
+			final int halfHeight = getHeight() / 2;
+			
+			if(this.eventBitmap != null) {
+				canvas.drawBitmap(this.eventBitmap, halfWidth - this.eventBitmap.getWidth() / 2, halfHeight - this.eventBitmap.getHeight() / 2, null);
+			}
+			
+			//Animate the text size
+			TEXT_FOREGROUND_PAINT.setTextSize(this.animationTextSize);
+			TEXT_BACKGROUND_PAINT.setTextSize(this.animationTextSize);
+			
+			this.animationTextSize += ANIMATION_TEXTSIZE_INCREMENT * this.animationDirection;
+			
+			if(this.animationTextSize <= ANIMATION_TEXTSIZE_MINIMUM || this.animationTextSize >= ANIMATION_TEXTSIZE_MAXIMUM) {
+				this.animationDirection *= -1;
+			}
+			
+			//Draw the text
+			final String text = EVENT.getTitle();
+			
+			final int x = halfWidth - (int)(TEXT_FOREGROUND_PAINT.measureText(text) / 2f);
+			final int y = halfHeight;
+			
+			canvas.drawText(text, x, y, TEXT_BACKGROUND_PAINT);
+			canvas.drawText(text, x, y, TEXT_FOREGROUND_PAINT);
+		}
 	}
 }
