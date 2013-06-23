@@ -99,6 +99,11 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
     	
         super.onPause();
     }
+    
+    @Override
+    protected void onDestroy() {
+    	stopService(new Intent(this, SpeechRecognition.class));
+    }
 
 	private void createTestEvents() {
 		Event event = new Event("Wake me up", Util.GetMillisecondsOfDay(13, 12,00), Util.GetMillisecondsOfDay(23, 30, 00));

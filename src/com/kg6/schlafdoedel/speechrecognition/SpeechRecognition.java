@@ -36,8 +36,9 @@ public class SpeechRecognition extends Service {
 	private SpeechRecognizer speechRecognizer;
 	private Intent speechRecognizerIntent;
 
-	private boolean isListening;
+	private volatile boolean isListening;
 	private volatile boolean isCountDownEnabled;
+	private volatile boolean isServiceEnabled;
 	
 	private long lastActivationTime;
 
@@ -56,6 +57,7 @@ public class SpeechRecognition extends Service {
 		
 		this.isListening = false;
 		this.isCountDownEnabled = false;
+		this.isServiceEnabled = true;
 		
 		this.lastActivationTime = 0;
 
@@ -114,11 +116,15 @@ public class SpeechRecognition extends Service {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		
+		this.isServiceEnabled = false;
 
 		if(this.isCountDownEnabled) {
 			this.speechDeactivatedCountdown.cancel();
 		}
+		
 		if(this.speechRecognizer != null) {
+			this.speechRecognizer.cancel();
 			this.speechRecognizer.destroy();
 		}
 	}
@@ -138,6 +144,10 @@ public class SpeechRecognition extends Service {
 		@Override
 		public void handleMessage(Message msg) {
 			final SpeechRecognition speechRecognition = this.speechReconitionReference.get();
+			
+			if(!speechRecognition.isServiceEnabled) {
+				return;
+			}
 
 			switch (msg.what) {
 				case Configuration.SPEECH_RECOGNITION_START:
@@ -174,8 +184,8 @@ public class SpeechRecognition extends Service {
 	protected class SpeechRecognitionListener implements RecognitionListener {
 
 		@Override
-		public void onBeginningOfSpeech() {
-			if(isCountDownEnabled) {
+		public void onBeginningOfSpeech() {			
+			if(isServiceEnabled && isCountDownEnabled) {
 				isCountDownEnabled = false;
 				
 				speechDeactivatedCountdown.cancel();
@@ -184,6 +194,10 @@ public class SpeechRecognition extends Service {
 
 		@Override
 		public void onError(int error) {
+			if(!isServiceEnabled) {
+				return;
+			}
+			
 			if(isCountDownEnabled) {
 				isCountDownEnabled = false;
 				
@@ -231,7 +245,7 @@ public class SpeechRecognition extends Service {
 
 		@Override
 		public void onReadyForSpeech(Bundle params) {
-			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+			if(isServiceEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
 				isCountDownEnabled = true;
 				
 				speechDeactivatedCountdown.start();
@@ -242,6 +256,10 @@ public class SpeechRecognition extends Service {
 
 		@Override
 		public void onResults(Bundle results) {
+			if(!isServiceEnabled) {
+				return;
+			}
+			
 			ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 
 			for (int i = 0; i < matches.size(); i++) {
@@ -249,6 +267,9 @@ public class SpeechRecognition extends Service {
 					break;
 				}
 			}
+			
+			speechRecognizer.stopListening();
+			speechRecognizer.cancel();
 		}
 		
 		@Override
@@ -286,6 +307,10 @@ public class SpeechRecognition extends Service {
 
 		@Override
 		public void onFinish() {
+			if(!isServiceEnabled) {
+				return;
+			}
+			
 			if(lastActivationTime > 0 && lastActivationTime < System.currentTimeMillis() - ACTIVATION_TIMEOUT) {
 				lastActivationTime = 0;
 				

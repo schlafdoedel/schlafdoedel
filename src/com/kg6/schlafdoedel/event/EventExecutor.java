@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 
+import com.kg6.schlafdoedel.custom.Util;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -22,6 +24,7 @@ import android.widget.FrameLayout;
 
 public class EventExecutor extends Thread {
 	private final int EVENT_ANIMATION_SLEEPTIME = 50;
+	private final int VIEW_MARGIN = 20;
 	
 	private final Activity CONTEXT;
 	private final FrameLayout CONTAINER;
@@ -138,7 +141,7 @@ public class EventExecutor extends Thread {
 	
 	private void loadEventBitmap(EventSource source) {
 		if(this.animationPanel != null) {
-			Bitmap eventBitmap = loadBitmap(source, this.animationPanel.getWidth());
+			Bitmap eventBitmap = loadBitmap(source, Util.GetDeviceWidth(CONTEXT) - 2 * VIEW_MARGIN);
 			
 			if(eventBitmap != null) {
 				this.animationPanel.setEventBitmap(eventBitmap);
