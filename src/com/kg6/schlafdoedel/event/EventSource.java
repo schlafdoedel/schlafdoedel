@@ -6,6 +6,7 @@ public class EventSource {
 	public enum SourceType {
 		Music,
 		Image,
+		Weather,
 	}
 	
 	private final String URL;

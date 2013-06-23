@@ -1,7 +1,19 @@
 package com.kg6.schlafdoedel;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Set;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -12,6 +24,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -106,14 +119,19 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
     }
 
 	private void createTestEvents() {
-		Event event = new Event("Wake me up", Util.GetMillisecondsOfDay(13, 12,00), Util.GetMillisecondsOfDay(23, 30, 00));
+		Calendar now = Calendar.getInstance();
+		int hour = now.get(Calendar.HOUR_OF_DAY);
+		int minute = now.get(Calendar.MINUTE);
+		int second = now.get(Calendar.SECOND);
+		
+		Event event = new Event("Wake me up", Util.GetMillisecondsOfDay(hour, minute, second + 3), Util.GetMillisecondsOfDay(hour + 1, minute, second));
 		event.addEventSource(new EventSource(SourceType.Music,"http://onair.krone.at/kronehit.mp3"));
 		event.addEventSource(new EventSource(SourceType.Image,"http://3.bp.blogspot.com/-J0ms_mKUTMg/TuS1QPg8LqI/AAAAAAAAGHA/1IobgDijAiQ/s1600/sunrise.jpg"));
 
 		for (int i = 0; i < 7; i++) {
 			event.setRepetition(i, true);
 		}
-
+		
 		this.eventScheduler.addEvent(event);
 
 		this.eventScheduler.setSleepingPhase(Configuration.COMMAND_SLEEPING_PHASE_SHALLOW);
@@ -465,7 +483,8 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_DEACTIVATED) == 0) {
 						hideSpeechRecognitionSymbol();
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_WEATHER) == 0) {
-						//TODO
+						System.out.println("WEATHER!!");
+						getWeather();
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_NEWS) == 0) {
 						//TODO
 					} else {
@@ -495,6 +514,61 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			this.contentContainerLayout.removeAllViews();
 			
 			dismiss();
+		}
+		
+		private void getWeather() {
+			
+			HttpClient httpclient = new DefaultHttpClient();
+
+		    // Prepare a request object
+		    HttpGet httpget = new HttpGet(Configuration.WEATHER_API_URL_1 + "Linz" + Configuration.WEATHER_API_URL_2); 
+
+		    // Execute the request
+		    HttpResponse response;
+		    
+		    try {
+		        response = httpclient.execute(httpget);
+		        // Examine the response status
+		        Log.i("Praeda",response.getStatusLine().toString());
+
+		        // Get hold of the response entity
+		        HttpEntity entity = response.getEntity();
+		        // If the response does not enclose an entity, there is no need
+		        // to worry about connection release
+
+		        if (entity != null) {
+
+		            // A Simple JSON Response Read
+		            InputStream instream = entity.getContent();
+		            String result= convertStreamToString(instream);
+		            // now you have the string representation of the HTML request
+		            instream.close();
+		        }
+
+
+		    } catch (Exception e) {}
+		}
+
+		private String convertStreamToString(InputStream instream) {
+			
+			BufferedReader reader = new BufferedReader(new InputStreamReader(instream));
+		    StringBuilder sb = new StringBuilder();
+
+		    String line = null;
+		    try {
+		        while ((line = reader.readLine()) != null) {
+		            sb.append(line + "\n");
+		        }
+		    } catch (IOException e) {
+		        e.printStackTrace();
+		    } finally {
+		        try {
+		            instream.close();
+		        } catch (IOException e) {
+		            e.printStackTrace();
+		        }
+		    }
+		    return sb.toString();
 		}
 	} 
 }

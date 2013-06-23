@@ -57,6 +57,7 @@ public class EventDefinitionDialog extends Dialog {
 	
 	private EditText musicSourceTextBox;
 	private EditText imageSourceTextBox;
+	private EditText weatherSourceTextBox;
 	
 	private Button addEventButton;
 	
@@ -70,6 +71,7 @@ public class EventDefinitionDialog extends Dialog {
 		
 		this.musicSourceTextBox = null;
 		this.imageSourceTextBox = null;
+		this.weatherSourceTextBox = null;
 		
 		this.predefinedEvent = null;
 
@@ -358,6 +360,19 @@ public class EventDefinitionDialog extends Dialog {
 		
 		addRow(contentLayout, "Show image from", imageSourceLayout);
 		
+		
+		//weather event type
+		LinearLayout weatherSourceLayout = new LinearLayout(CONTEXT);
+		weatherSourceLayout.setOrientation(LinearLayout.HORIZONTAL);
+		
+		this.weatherSourceTextBox = new EditText(CONTEXT);
+		this.weatherSourceTextBox.setSingleLine();
+		
+		weatherSourceLayout.addView(this.weatherSourceTextBox, new LayoutParams(Util.GetDeviceWidth(CONTEXT) - ROW_HEADER_WIDTH - SELECT_BUTTON_WIDTH - 10, LayoutParams.WRAP_CONTENT));
+		
+		addRow(contentLayout, "Get weather for", weatherSourceLayout);
+		
+		
 		//add button
 		this.addEventButton = new Button(CONTEXT);
 		this.addEventButton.setText("Add event");
@@ -369,6 +384,7 @@ public class EventDefinitionDialog extends Dialog {
 				String eventTitle = titleTextBox.getText().toString();
 				String eventMusicSource = musicSourceTextBox.getText().toString();
 				String eventImageSource = imageSourceTextBox.getText().toString();
+				String eventWeatherSource = weatherSourceTextBox.getText().toString();
 				
 				if(eventTitle.trim().length() == 0) {
 					eventTitle = getDefaultEventTitle();
@@ -424,6 +440,10 @@ public class EventDefinitionDialog extends Dialog {
 				
 				if(eventMusicSource.length() > 0) {
 					event.addEventSource(new EventSource(SourceType.Image, eventImageSource));
+				}
+				
+				if(eventWeatherSource.length() > 0) {
+					event.addEventSource(new EventSource(SourceType.Weather, eventWeatherSource));
 				}
 				
 				//Add the event to the scheduler
