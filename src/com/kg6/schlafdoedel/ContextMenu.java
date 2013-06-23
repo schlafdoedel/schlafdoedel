@@ -37,6 +37,7 @@ public class ContextMenu {
 			
 			try {
 				EventScheduler eventScheduler = EventScheduler.CreateInstance(context, null);
+				
 				eventScheduler.cleanup();
 			} catch (Exception e) {
 				Log.e("ContextMenu.java", "Unable to cleanup the EventScheduler", e);

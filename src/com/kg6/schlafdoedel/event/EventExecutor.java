@@ -241,8 +241,8 @@ public class EventExecutor extends Thread {
 			TEXT_BACKGROUND_PAINT.setStrokeWidth(2);
 			TEXT_BACKGROUND_PAINT.setFlags(Paint.ANTI_ALIAS_FLAG);
 			
-			this.animationTextSize = ANIMATION_TEXTSIZE_MINIMUM;
-			this.animationDirection = 1;
+			this.animationTextSize = ANIMATION_TEXTSIZE_MAXIMUM;
+			this.animationDirection = -1;
 		}
 		
 		public void cleanup() {

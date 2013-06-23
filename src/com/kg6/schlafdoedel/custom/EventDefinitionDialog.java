@@ -113,12 +113,18 @@ public class EventDefinitionDialog extends Dialog {
 		addRow(contentLayout, "Wake up start time", startWheelLayout);
 		
 		//end
+		int endTimeHour = expectedWakeupTime[0] + 1;
+		
+		if(endTimeHour >= 24) {
+			endTimeHour = expectedWakeupTime[0];
+		}
+		
 		LinearLayout endWheelLayout = new LinearLayout(CONTEXT);
 		endWheelLayout.setOrientation(LinearLayout.HORIZONTAL);
 		
 		final WheelView endWheelHours = new WheelView(CONTEXT);
 		endWheelHours.setViewAdapter(new NumericWheelAdapter(CONTEXT, 0, 23));
-		endWheelHours.setCurrentItem((expectedWakeupTime[0] + 1) % 24);
+		endWheelHours.setCurrentItem(endTimeHour);
 		
 		endWheelLayout.addView(endWheelHours, new LayoutParams(WHEEL_WIDTH, LayoutParams.WRAP_CONTENT));
 		

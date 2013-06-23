@@ -12,4 +12,15 @@ public class Configuration {
 	
 	public static final int FILE_CHOOSER_MUSIC_RESPONSE_CODE = 0;
 	public static final int FILE_CHOOSER_IMAGE_RESPONSE_CODE = 1;
+	
+	public static final int SPEECH_RECOGNITION_START = 2;
+	public static final int SPEECH_RECOGNITION_STOP = 3;
+	public static final String SPEECH_RECOGNITION_BROADCAST = "SPEECH_RECOGNITION_BROADCAST";
+	
+	//All phrases must be defined in lower case
+	public static final String SPEECH_RECOGNITION_ACTIVATION_PHRASE = "dude";
+	public static final String SPEECH_RECOGNITION_COMMAND_ACTIVATED = "activated";
+	public static final String SPEECH_RECOGNITION_COMMAND_DEACTIVATED = "deactivated";
+	public static final String SPEECH_RECOGNITION_COMMAND_WEATHER = "weather";
+	public static final String SPEECH_RECOGNITION_COMMAND_NEWS = "news";
 }

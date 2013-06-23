@@ -3,11 +3,16 @@ package com.kg6.schlafdoedel;
 import java.util.HashMap;
 import java.util.Set;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,8 +21,10 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.Toast;
 
 import com.kg6.schlafdoedel.custom.DigitalClock;
 import com.kg6.schlafdoedel.custom.EventDefinitionDialog;
@@ -33,7 +40,9 @@ import com.kg6.schlafdoedel.network.BluetoothConnection;
 import com.kg6.schlafdoedel.network.NetworkConnection;
 import com.kg6.schlafdoedel.network.NetworkConnection.ConnectionType;
 import com.kg6.schlafdoedel.network.NetworkEvent;
+import com.kg6.schlafdoedel.speechrecognition.SpeechRecognition;
 
+@SuppressLint("UseSparseArrays")
 public class Overview extends Activity implements NetworkEvent, EventNotification {
 	private BluetoothConnection bluetoothConnection;
 	private EventScheduler eventScheduler;
@@ -42,8 +51,10 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	private RecentActivitiesPanel recentActivitiesPanel;
 	private EventListPanel eventListPanel;
 	
+	private SpeechRecognitionDialog speechRecognitionDialog;
+	
 	private HashMap<Integer, View> availableStatusTabsHash;
-
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -52,6 +63,8 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		this.eventDefinitionDialog = null;
+		
+		this.speechRecognitionDialog = new SpeechRecognitionDialog(this);
 		
 		this.availableStatusTabsHash = new HashMap<Integer, View>();
 
@@ -62,10 +75,30 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 
 		initializeBluetoothConnection();
 		initializeEventScheduler();
+		
+		startSpeechRecognitionService();
 
 		// TODO
 		createTestEvents();
 	}
+	
+	@Override
+    protected void onResume() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Configuration.SPEECH_RECOGNITION_BROADCAST);
+        registerReceiver(this.speechRecognitionDialog.getBroadcastReceiver(), filter);
+        
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+    	if(this.speechRecognitionDialog != null) {
+    		unregisterReceiver(this.speechRecognitionDialog.getBroadcastReceiver());
+    	}
+    	
+        super.onPause();
+    }
 
 	private void createTestEvents() {
 		Event event = new Event("Wake me up", Util.GetMillisecondsOfDay(13, 12,00), Util.GetMillisecondsOfDay(23, 30, 00));
@@ -96,18 +129,16 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode == RESULT_OK && data != null) {
-			Uri uri = data.getData();
-
 			switch (requestCode) {
 				case Configuration.FILE_CHOOSER_MUSIC_RESPONSE_CODE:
 					if (eventDefinitionDialog != null) {
-						eventDefinitionDialog.setMusicSource(uri.toString());
+						eventDefinitionDialog.setMusicSource(data.getData().toString());
 					}
 	
 					break;
 				case Configuration.FILE_CHOOSER_IMAGE_RESPONSE_CODE:
 					if (eventDefinitionDialog != null) {
-						eventDefinitionDialog.setImageSource(uri.toString());
+						eventDefinitionDialog.setImageSource(data.getData().toString());
 					}
 	
 					break;
@@ -145,6 +176,10 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		if (digitalClock != null) {
 			digitalClock.setEventScheduler(this.eventScheduler);
 		}
+	}
+	
+	private void startSpeechRecognitionService() {
+		startService(new Intent(this, SpeechRecognition.class));
 	}
 
 	private void addStatusPanel() {
@@ -383,6 +418,78 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	private void showStatusText(String text) {
 		if (this.recentActivitiesPanel != null) {
 			this.recentActivitiesPanel.addStatusText(text);
+			
+			switchToTab(R.id.recentActivitiesButton);
 		}
 	}
+	
+	public class SpeechRecognitionDialog extends Dialog {
+		private BroadcastReceiver broadcastReceiver;
+		
+		private LinearLayout contentContainerLayout;
+		private ImageView avatarImageView;
+		
+		private SpeechRecognitionDialog(Context context) {
+			super(context);
+			
+			initializeControls();
+			
+			manageBroadcastReceiver();
+		}
+		
+		private void initializeControls() {
+			setTitle("How can I help you?");
+			
+			this.contentContainerLayout = new LinearLayout(getContext());
+			this.contentContainerLayout.setOrientation(LinearLayout.VERTICAL);
+			
+			addContentView(this.contentContainerLayout, new LayoutParams(Util.GetDeviceWidth(getContext()), LayoutParams.MATCH_PARENT));
+			
+			this.avatarImageView = new ImageView(getContext());
+		}
+		
+		private void manageBroadcastReceiver() {
+			this.broadcastReceiver = new BroadcastReceiver() {
+				
+				@Override
+				public void onReceive(Context context, Intent intent) {
+					final String command = intent.getStringExtra("command");
+					
+					if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED) == 0) {
+						showSpeechRecognitionSymbol();
+					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_DEACTIVATED) == 0) {
+						hideSpeechRecognitionSymbol();
+					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_WEATHER) == 0) {
+						//TODO
+					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_NEWS) == 0) {
+						//TODO
+					} else {
+						Toast.makeText(Overview.this, String.format("Command %s can not be handled", command), Toast.LENGTH_SHORT).show();
+					}
+				}
+			};
+		}
+		
+		public BroadcastReceiver getBroadcastReceiver() {
+			return this.broadcastReceiver;
+		}
+		
+		private void showSpeechRecognitionSymbol() {
+			this.avatarImageView.setImageDrawable(Overview.this.getResources().getDrawable(R.drawable.speech_recognition_avatar));
+			
+			LayoutParams avatarImageParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+			avatarImageParams.gravity = Gravity.CENTER;
+			
+			this.contentContainerLayout.removeAllViews();
+			this.contentContainerLayout.addView(this.avatarImageView, avatarImageParams);
+			
+			show();
+		}
+		
+		private void hideSpeechRecognitionSymbol() {
+			this.contentContainerLayout.removeAllViews();
+			
+			dismiss();
+		}
+	} 
 }
