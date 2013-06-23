@@ -23,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ScrollView;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,12 +38,27 @@ public class EventDefinitionDialog extends Dialog {
 	private final int ROW_HEADER_WIDTH = 180;
 	private final int SELECT_BUTTON_WIDTH = 150;
 	private final int WHEEL_WIDTH = 100;
+	private final int HOURS_PER_DAY = 24;
+	private final int MINUTES_PER_HOUR = 60;
 	
 	private final Activity CONTEXT;
 	private final EventScheduler EVENT_SCHEDULER;
 	
+	private EditText titleTextBox;
+	
+	private WheelView startWheelHours;
+	private WheelView startWheelMinutes;
+	
+	private WheelView endWheelHours;
+	private WheelView endWheelMinutes;
+	
+	private CheckBox[] repetitionCheckBoxes;
+	private Spinner radioSourceSpinner;
+	
 	private EditText musicSourceTextBox;
 	private EditText imageSourceTextBox;
+	
+	private Event predefinedEvent;
 	
 	public EventDefinitionDialog(Activity context, EventScheduler eventScheduler) {
 		super(context, android.R.style.Theme_Black);
@@ -52,8 +68,66 @@ public class EventDefinitionDialog extends Dialog {
 		
 		this.musicSourceTextBox = null;
 		this.imageSourceTextBox = null;
+		
+		this.predefinedEvent = null;
 
 		initializeControls();
+	}
+	
+	public void setEvent(Event event) {
+		this.predefinedEvent = event;
+		
+		this.titleTextBox.setText(event.getTitle());
+		
+		this.startWheelHours.setCurrentItem(Util.GetHourOfTimestamp(event.getStart()));
+		this.startWheelMinutes.setCurrentItem(Util.GetMinuteOfTimestamp(event.getStart()));
+		
+		this.endWheelHours.setCurrentItem(Util.GetHourOfTimestamp(event.getEnd()));
+		this.endWheelMinutes.setCurrentItem(Util.GetMinuteOfTimestamp(event.getEnd()));
+		
+		final boolean[] repetition = event.getRepetition();
+		
+		for(int i = 0; i < this.repetitionCheckBoxes.length; i++) {
+			repetitionCheckBoxes[i].setChecked(repetition[i]);
+		}
+		
+		final SpinnerAdapter spinnerAdapter = this.radioSourceSpinner.getAdapter();
+		
+		List<EventSource> handledEventSourceList = new ArrayList<EventSource>();
+		
+		for(int i = 0; i < spinnerAdapter.getCount(); i++) {
+			String entry = spinnerAdapter.getItem(i).toString();
+			
+			boolean elementSelected = false;
+			
+			for(EventSource source : event.getEventSourceList()) {
+				if(source.getSourceType() == SourceType.Music && entry.compareTo(source.getUrl()) == 0) {
+					this.radioSourceSpinner.setSelection(i);
+					
+					handledEventSourceList.add(source);
+					
+					elementSelected = true;
+					
+					break;
+				}
+			}
+			
+			if(elementSelected) {
+				break;
+			}
+		}
+		
+		for(EventSource source : event.getEventSourceList()) {
+			if(handledEventSourceList.contains(source)) {
+				continue;
+			}
+			
+			if(source.getSourceType() == SourceType.Music) {
+				this.musicSourceTextBox.setText(source.getUrl());
+			} else if(source.getSourceType() == SourceType.Image) {
+				this.imageSourceTextBox.setText(source.getUrl());
+			}
+		}
 	}
 	
 	private void initializeControls() {
@@ -85,11 +159,11 @@ public class EventDefinitionDialog extends Dialog {
 		contentLayout.addView(headerTextView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 		
 		//title
-		final EditText titleTextBox = new EditText(CONTEXT);
-		titleTextBox.setSingleLine();
-		titleTextBox.setText(getDefaultEventTitle());
+		this.titleTextBox = new EditText(CONTEXT);
+		this.titleTextBox.setSingleLine();
+		this.titleTextBox.setText(getDefaultEventTitle());
 		
-		addRow(contentLayout, "Event title", titleTextBox);
+		addRow(contentLayout, "Event title", this.titleTextBox);
 		
 		//start
 		final int[] expectedWakeupTime = getNextWakeUpTime();
@@ -97,50 +171,50 @@ public class EventDefinitionDialog extends Dialog {
 		LinearLayout startWheelLayout = new LinearLayout(CONTEXT);
 		startWheelLayout.setOrientation(LinearLayout.HORIZONTAL);
 		
-		final WheelView startWheelHours = new WheelView(CONTEXT);
-		startWheelHours.setViewAdapter(new NumericWheelAdapter(CONTEXT, 0, 23));
-		startWheelHours.setCurrentItem(expectedWakeupTime[0]);
+		this.startWheelHours = new WheelView(CONTEXT);
+		this.startWheelHours.setViewAdapter(new NumericWheelAdapter(CONTEXT, 0, HOURS_PER_DAY - 1));
+		this.startWheelHours.setCurrentItem(expectedWakeupTime[0]);
 		
-		startWheelLayout.addView(startWheelHours, new LayoutParams(WHEEL_WIDTH, LayoutParams.WRAP_CONTENT));
+		startWheelLayout.addView(this.startWheelHours, new LayoutParams(WHEEL_WIDTH, LayoutParams.WRAP_CONTENT));
 		
-		final WheelView startWheelMinutes = new WheelView(CONTEXT);
-		startWheelMinutes.setViewAdapter(new NumericWheelAdapter(CONTEXT, 0, 59, "%02d"));
-		startWheelMinutes.setCurrentItem(expectedWakeupTime[1]);
-		startWheelMinutes.setCyclic(true);
+		this.startWheelMinutes = new WheelView(CONTEXT);
+		this.startWheelMinutes.setViewAdapter(new NumericWheelAdapter(CONTEXT, 0, MINUTES_PER_HOUR - 1, "%02d"));
+		this.startWheelMinutes.setCurrentItem(expectedWakeupTime[1]);
+		this.startWheelMinutes.setCyclic(true);
 		
-		startWheelLayout.addView(startWheelMinutes, new LayoutParams(WHEEL_WIDTH, LayoutParams.WRAP_CONTENT));
+		startWheelLayout.addView(this.startWheelMinutes, new LayoutParams(WHEEL_WIDTH, LayoutParams.WRAP_CONTENT));
 		
 		addRow(contentLayout, "Wake up start time", startWheelLayout);
 		
 		//end
 		int endTimeHour = expectedWakeupTime[0] + 1;
 		
-		if(endTimeHour >= 24) {
+		if(endTimeHour >= HOURS_PER_DAY) {
 			endTimeHour = expectedWakeupTime[0];
 		}
 		
 		LinearLayout endWheelLayout = new LinearLayout(CONTEXT);
 		endWheelLayout.setOrientation(LinearLayout.HORIZONTAL);
 		
-		final WheelView endWheelHours = new WheelView(CONTEXT);
-		endWheelHours.setViewAdapter(new NumericWheelAdapter(CONTEXT, 0, 23));
-		endWheelHours.setCurrentItem(endTimeHour);
+		this.endWheelHours = new WheelView(CONTEXT);
+		this.endWheelHours.setViewAdapter(new NumericWheelAdapter(CONTEXT, 0, HOURS_PER_DAY - 1));
+		this.endWheelHours.setCurrentItem(endTimeHour);
 		
-		endWheelLayout.addView(endWheelHours, new LayoutParams(WHEEL_WIDTH, LayoutParams.WRAP_CONTENT));
+		endWheelLayout.addView(this.endWheelHours, new LayoutParams(WHEEL_WIDTH, LayoutParams.WRAP_CONTENT));
 		
-		final WheelView endWheelMinutes = new WheelView(CONTEXT);
-		endWheelMinutes.setViewAdapter(new NumericWheelAdapter(CONTEXT, 0, 59, "%02d"));
-		endWheelMinutes.setCurrentItem(expectedWakeupTime[1]);
-		endWheelMinutes.setCyclic(true);
+		this.endWheelMinutes = new WheelView(CONTEXT);
+		this.endWheelMinutes.setViewAdapter(new NumericWheelAdapter(CONTEXT, 0, MINUTES_PER_HOUR - 1, "%02d"));
+		this.endWheelMinutes.setCurrentItem(expectedWakeupTime[1]);
+		this.endWheelMinutes.setCyclic(true);
 		
-		endWheelLayout.addView(endWheelMinutes, new LayoutParams(WHEEL_WIDTH, LayoutParams.WRAP_CONTENT));
+		endWheelLayout.addView(this.endWheelMinutes, new LayoutParams(WHEEL_WIDTH, LayoutParams.WRAP_CONTENT));
 		
 		addRow(contentLayout, "Wake up end time", endWheelLayout);
 		
 		//repetition
 		final boolean[] expectedRepetition = getExpectedRepetition();
 		
-		final CheckBox[] repetitionCheckBoxes = new CheckBox[Util.GetNumberOfWeekdays()];
+		this.repetitionCheckBoxes = new CheckBox[Util.GetNumberOfWeekdays()];
 		
 		LinearLayout repetitionLayout = new LinearLayout(CONTEXT);
 		repetitionLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -149,8 +223,8 @@ public class EventDefinitionDialog extends Dialog {
 		repetitionLeftLayout.setOrientation(LinearLayout.VERTICAL);
 		repetitionLayout.addView(repetitionLeftLayout);
 		
-		for(int i = 1; i <= repetitionCheckBoxes.length; i++) {
-			final int index = i % repetitionCheckBoxes.length;
+		for(int i = 1; i <= this.repetitionCheckBoxes.length; i++) {
+			final int index = i % this.repetitionCheckBoxes.length;
 			
 			CheckBox checkBox = new CheckBox(CONTEXT);
 			checkBox.setText(Util.getWeekdayPrintname(index));
@@ -158,7 +232,7 @@ public class EventDefinitionDialog extends Dialog {
 			
 			repetitionLeftLayout.addView(checkBox);
 			
-			repetitionCheckBoxes[index] = checkBox;
+			this.repetitionCheckBoxes[index] = checkBox;
 		}
 		
 		LinearLayout repetitionRightLayout = new LinearLayout(CONTEXT);
@@ -211,10 +285,10 @@ public class EventDefinitionDialog extends Dialog {
 		
 	    ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(CONTEXT, android.R.layout.simple_spinner_dropdown_item, spinnerEntries);
 	    
-	    final Spinner radioSourceSpinner = new Spinner(CONTEXT);
-	    radioSourceSpinner.setAdapter(spinnerArrayAdapter);
+	    this.radioSourceSpinner = new Spinner(CONTEXT);
+	    this.radioSourceSpinner.setAdapter(spinnerArrayAdapter);
 		
-	    addRow(contentLayout, "Play internet radio", radioSourceSpinner);
+	    addRow(contentLayout, "Play internet radio", this.radioSourceSpinner);
 		
 		//music event type
 		LinearLayout musicSourceLayout = new LinearLayout(CONTEXT);
@@ -312,7 +386,19 @@ public class EventDefinitionDialog extends Dialog {
 				}
 				
 				//Create the event
-				Event event = new Event(eventTitle, start, end);
+				Event event = null;
+				
+				if(predefinedEvent == null) {
+					event = new Event(eventTitle, start, end);
+				} else {
+					event = predefinedEvent;
+					
+					event.setTitle(eventTitle);
+					event.setStart(start);
+					event.setEnd(end);
+					
+					event.clearEventSources();
+				}
 				
 				//Add repetition entries
 				for(int i = 0; i < repetitionCheckBoxes.length; i++) {
@@ -337,7 +423,9 @@ public class EventDefinitionDialog extends Dialog {
 				}
 				
 				//Add the event to the scheduler
-				EVENT_SCHEDULER.addEvent(event);
+				if(predefinedEvent == null) {
+					EVENT_SCHEDULER.addEvent(event);
+				}
 				
 				dismiss();
 			}
@@ -364,10 +452,11 @@ public class EventDefinitionDialog extends Dialog {
 			}
 		};
 		
-		startWheelHours.addChangingListener(wheelChangeListener);
-		startWheelMinutes.addChangingListener(wheelChangeListener);
-		endWheelHours.addChangingListener(wheelChangeListener);
-		endWheelMinutes.addChangingListener(wheelChangeListener);
+		this.startWheelHours.addChangingListener(wheelChangeListener);
+		this.startWheelMinutes.addChangingListener(wheelChangeListener);
+		
+		this.endWheelHours.addChangingListener(wheelChangeListener);
+		this.endWheelMinutes.addChangingListener(wheelChangeListener);
 	}
 	
 	public void setMusicSource(String source) {

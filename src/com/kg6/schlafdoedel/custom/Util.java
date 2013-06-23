@@ -52,6 +52,14 @@ public class Util {
 		return calendar.getTimeInMillis() - Util.GetMillisecondsOfDay();
 	}
 	
+	public static int GetHourOfTimestamp(long timestamp) {
+		return (int)(timestamp / (1000 * 60 * 60));
+	}
+	
+	public static int GetMinuteOfTimestamp(long timestamp) {
+		return (int)(timestamp / (1000 * 60));
+	}
+	
 	public static int GetNumberOfWeekdays() {
 		return NUM_WEEKDAYS;
 	}

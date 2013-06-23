@@ -20,7 +20,7 @@ public class Event {
 	
 	private long start;
 	private long end;
-	private int[] repetition;
+	private boolean[] repetition;
 	private List<EventSource> sourceList;
 	
 	private List<Integer> handledTimestampList;
@@ -31,7 +31,7 @@ public class Event {
 		this.title = title;
 		this.start = start;
 		this.end = end;
-		this.repetition = new int[Util.GetNumberOfWeekdays()];
+		this.repetition = new boolean[Util.GetNumberOfWeekdays()];
 		this.sourceList = new ArrayList<EventSource>();
 		
 		this.handledTimestampList = new ArrayList<Integer>();
@@ -60,6 +60,10 @@ public class Event {
 	public void removeEventSource(EventSource source) {
 		this.sourceList.remove(source);
 	}
+	
+	public void clearEventSources() {
+		this.sourceList.clear();
+	}
 
 	public long getStart() {
 		return start;
@@ -77,7 +81,7 @@ public class Event {
 		this.end = end;
 	}
 
-	public int[] getRepetition() {
+	public boolean[] getRepetition() {
 		return repetition;
 	}
 
@@ -86,11 +90,7 @@ public class Event {
 			return;
 		}
 		
-		if(enabled) {
-			this.repetition[day] = 1;
-		} else {
-			this.repetition[day] = 0;
-		}
+		this.repetition[day] = enabled;
 	}
 	
 	public boolean handle() {
@@ -99,7 +99,7 @@ public class Event {
 		final int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
 		
 		//Check whether the repetition is enabled for the current day
-		if(this.repetition.length > dayOfWeek && this.repetition[dayOfWeek] == 0) {
+		if(this.repetition.length > dayOfWeek && !this.repetition[dayOfWeek]) {
 			return false;
 		}
 		
