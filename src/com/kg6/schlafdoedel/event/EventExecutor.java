@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
+import java.util.Random;
 
 import com.kg6.schlafdoedel.custom.Util;
 
@@ -98,6 +99,10 @@ public class EventExecutor extends Thread {
 						startPlayback(source);
 						break;
 				}
+			}
+			
+			if(this.animationPanel != null && this.animationPanel.getEventBitmap() == null) {
+				this.animationPanel.setBackgroundBlinkingAnimationEnabled(true);
 			}
 			
 			while(this.enabled) {
@@ -223,12 +228,18 @@ public class EventExecutor extends Thread {
 		private final float ANIMATION_TEXTSIZE_MINIMUM = 10f;
 		private final float ANIMATION_TEXTSIZE_INCREMENT = 1f;
 		
+		private final int[] ANIMATION_BACKGROUND_COLORS = new int[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA };
+		
 		private final Paint TEXT_FOREGROUND_PAINT;
 		private final Paint TEXT_BACKGROUND_PAINT;
+		
+		private final Random RANDOM;
 		
 		private Bitmap eventBitmap;
 		private float animationTextSize;
 		private float animationDirection;
+		
+		private boolean backgroundBlinkingAnimationEnabled;
 
 		public EventAnimationPanel(Context context) {
 			super(context);
@@ -244,8 +255,12 @@ public class EventExecutor extends Thread {
 			TEXT_BACKGROUND_PAINT.setStrokeWidth(2);
 			TEXT_BACKGROUND_PAINT.setFlags(Paint.ANTI_ALIAS_FLAG);
 			
+			RANDOM = new Random();
+			
 			this.animationTextSize = ANIMATION_TEXTSIZE_MAXIMUM;
 			this.animationDirection = -1;
+			
+			this.backgroundBlinkingAnimationEnabled = false;
 		}
 		
 		public void cleanup() {
@@ -262,6 +277,14 @@ public class EventExecutor extends Thread {
 		public void setEventBitmap(Bitmap bitmap) {
 			this.eventBitmap = bitmap;
 		}
+		
+		public Bitmap getEventBitmap() {
+			return this.eventBitmap;
+		}
+		
+		public void setBackgroundBlinkingAnimationEnabled(boolean enabled) {
+			this.backgroundBlinkingAnimationEnabled = enabled;
+		}
 
 		@Override
 		protected void onDraw(Canvas canvas) {
@@ -272,6 +295,8 @@ public class EventExecutor extends Thread {
 			
 			if(this.eventBitmap != null) {
 				canvas.drawBitmap(this.eventBitmap, halfWidth - this.eventBitmap.getWidth() / 2, halfHeight - this.eventBitmap.getHeight() / 2, null);
+			} else if (this.backgroundBlinkingAnimationEnabled) {
+				canvas.drawColor(ANIMATION_BACKGROUND_COLORS[RANDOM.nextInt(ANIMATION_BACKGROUND_COLORS.length)]);
 			}
 			
 			//Animate the text size
