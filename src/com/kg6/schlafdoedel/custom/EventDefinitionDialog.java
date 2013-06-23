@@ -58,6 +58,8 @@ public class EventDefinitionDialog extends Dialog {
 	private EditText musicSourceTextBox;
 	private EditText imageSourceTextBox;
 	
+	private Button addEventButton;
+	
 	private Event predefinedEvent;
 	
 	public EventDefinitionDialog(Activity context, EventScheduler eventScheduler) {
@@ -128,6 +130,8 @@ public class EventDefinitionDialog extends Dialog {
 				this.imageSourceTextBox.setText(source.getUrl());
 			}
 		}
+		
+		this.addEventButton.setText("Update event");
 	}
 	
 	private void initializeControls() {
@@ -355,10 +359,10 @@ public class EventDefinitionDialog extends Dialog {
 		addRow(contentLayout, "Show image from", imageSourceLayout);
 		
 		//add button
-		Button addButton = new Button(CONTEXT);
-		addButton.setText("Add event");
+		this.addEventButton = new Button(CONTEXT);
+		this.addEventButton.setText("Add event");
 		
-		addButton.setOnClickListener(new View.OnClickListener() {
+		this.addEventButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
@@ -425,13 +429,15 @@ public class EventDefinitionDialog extends Dialog {
 				//Add the event to the scheduler
 				if(predefinedEvent == null) {
 					EVENT_SCHEDULER.addEvent(event);
+				} else {
+					EVENT_SCHEDULER.notifyEventListenersForChangedEvents();
 				}
 				
 				dismiss();
 			}
 		});
 		
-		contentLayout.addView(addButton, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+		contentLayout.addView(this.addEventButton, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 		
 		//Make sure that the end time is always > than the start time
 		OnWheelChangedListener wheelChangeListener = new OnWheelChangedListener() {

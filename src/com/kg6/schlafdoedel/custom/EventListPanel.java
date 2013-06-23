@@ -7,10 +7,11 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.kg6.schlafdoedel.R;
 import com.kg6.schlafdoedel.event.Event;
 import com.kg6.schlafdoedel.event.EventNotification;
 import com.kg6.schlafdoedel.event.EventScheduler;
@@ -18,7 +19,7 @@ import com.kg6.schlafdoedel.event.EventSource;
 import com.kg6.schlafdoedel.event.EventSource.SourceType;
 
 public class EventListPanel extends LinearLayout implements EventNotification {
-	private final int VIEW_DISMISS_COLUMN_WIDTH = 160;
+	private final int VIEW_CONTROLS_COLUMN_WIDTH = 120;
 	private final int VIEW_COLUMN_MARGIN = 20;
 	private final int VIEW_SUBTITLE_LENGTH = 75;
 	
@@ -83,7 +84,7 @@ public class EventListPanel extends LinearLayout implements EventNotification {
 		LinearLayout textLayout = new LinearLayout(CONTEXT);
 		textLayout.setOrientation(LinearLayout.VERTICAL);
 		
-		entryLayout.addView(textLayout, new LayoutParams(Util.GetDeviceWidth(CONTEXT) - VIEW_DISMISS_COLUMN_WIDTH - 2 * VIEW_COLUMN_MARGIN, LayoutParams.WRAP_CONTENT));
+		entryLayout.addView(textLayout, new LayoutParams(Util.GetDeviceWidth(CONTEXT) - VIEW_CONTROLS_COLUMN_WIDTH - 2 * VIEW_COLUMN_MARGIN, LayoutParams.WRAP_CONTENT));
 		
 		TextView titleTextView = new TextView(CONTEXT);
 		titleTextView.setTextColor(Color.WHITE);
@@ -101,8 +102,30 @@ public class EventListPanel extends LinearLayout implements EventNotification {
 		}
 		
 		if(event != null) {
-			Button deleteButton = new Button(CONTEXT);
-			deleteButton.setText("Delete");
+			LinearLayout controlsLayout = new LinearLayout(CONTEXT);
+			controlsLayout.setOrientation(LinearLayout.HORIZONTAL);
+			
+			entryLayout.addView(controlsLayout, new LayoutParams(VIEW_CONTROLS_COLUMN_WIDTH, LayoutParams.WRAP_CONTENT));
+			
+			//modify button
+			ImageButton modifyButton = new ImageButton(CONTEXT);
+			modifyButton.setImageDrawable(CONTEXT.getResources().getDrawable(R.drawable.button_modify_event));
+			
+			modifyButton.setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					EventDefinitionDialog eventDefinitionDialog = new EventDefinitionDialog(CONTEXT, eventScheduler);
+					eventDefinitionDialog.setEvent(event);
+					eventDefinitionDialog.show();
+				}
+			});
+			
+			controlsLayout.addView(modifyButton, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+			
+			//delete button
+			ImageButton deleteButton = new ImageButton(CONTEXT);
+			deleteButton.setImageDrawable(CONTEXT.getResources().getDrawable(R.drawable.button_delete_event));
 			
 			deleteButton.setOnClickListener(new OnClickListener() {
 				
@@ -132,7 +155,7 @@ public class EventListPanel extends LinearLayout implements EventNotification {
 				}
 			});
 			
-			entryLayout.addView(deleteButton, new LayoutParams(VIEW_DISMISS_COLUMN_WIDTH, LayoutParams.WRAP_CONTENT));
+			controlsLayout.addView(deleteButton, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 		}
 	}
 	

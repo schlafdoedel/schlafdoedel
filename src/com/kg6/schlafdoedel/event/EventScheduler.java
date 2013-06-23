@@ -78,7 +78,7 @@ public class EventScheduler extends Thread {
 			
 			this.eventList.add(event);
 			
-			fireOnEventListChanged();
+			notifyEventListenersForChangedEvents();
 		}
 	}
 	
@@ -88,7 +88,7 @@ public class EventScheduler extends Thread {
 			
 			dismissEvent(event);
 			
-			fireOnEventListChanged();
+			notifyEventListenersForChangedEvents();
 		}
 	}
 	
@@ -247,7 +247,7 @@ public class EventScheduler extends Thread {
 		this.eventExecutorList.add(executor);
 	}
 	
-	private void fireOnEventListChanged() {
+	public void notifyEventListenersForChangedEvents() {
 		for(int i = 0; i < this.eventNotificationListenerList.size(); i++) {
 			this.eventNotificationListenerList.get(i).onEventListChanged();
 		}
