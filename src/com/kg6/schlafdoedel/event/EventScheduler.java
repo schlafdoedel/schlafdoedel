@@ -108,6 +108,15 @@ public class EventScheduler extends Thread {
 		}
 	}
 	
+	public float getEventAudioVolume() {
+		
+		if (this.eventExecutorList.size() > 0) {
+			return this.eventExecutorList.get(0).getVolume();
+		}
+		
+		return 0;
+	}
+	
 	public Event getNextUpcomingEvent() {
 		Event nextEvent = null;
 		Event firstEvent = null;

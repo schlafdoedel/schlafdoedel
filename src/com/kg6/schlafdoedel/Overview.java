@@ -24,9 +24,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
+import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -59,7 +61,7 @@ import com.kg6.schlafdoedel.network.NetworkEvent;
 import com.kg6.schlafdoedel.speechrecognition.SpeechRecognition;
 
 @SuppressLint("UseSparseArrays")
-public class Overview extends Activity implements NetworkEvent, EventNotification, OnInitListener {
+public class Overview extends Activity implements NetworkEvent, EventNotification, OnInitListener, OnUtteranceCompletedListener {
 	
 	private BluetoothConnection bluetoothConnection;
 	private EventScheduler eventScheduler;
@@ -70,6 +72,8 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	
 	private SpeechRecognitionDialog speechRecognitionDialog;
 	private TextToSpeech tts;
+	
+	private float previousVolume;
 	
 	private HashMap<Integer, View> availableStatusTabsHash;
 	
@@ -87,6 +91,8 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		this.availableStatusTabsHash = new HashMap<Integer, View>();
 		
 		this.tts = new TextToSpeech(this, this);
+		
+		this.previousVolume = 0;
 
 		addOptionsButtonListener();
 		addBluetoothButtonListener();
@@ -492,12 +498,13 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 					
 					if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED) == 0) {
 						showSpeechRecognitionSymbol();
+						previousVolume = eventScheduler.getEventAudioVolume();
+						eventScheduler.setEventAudioVolume(0);
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_DEACTIVATED) == 0) {
 						hideSpeechRecognitionSymbol();
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_WEATHER) == 0) {
 						Thread weather = new WeatherRequest();
 						weather.start();
-						System.out.println("WEATHER!!");
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_NEWS) == 0) {
 						//TODO
 					} else {
@@ -559,7 +566,11 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			            		currentCondition.getJSONArray("weatherDesc").getJSONObject(0).getString("value").toLowerCase() +
 			            		" at " + currentCondition.getString("temp_C") + " degrees celcius, dude";
 			            
-			            tts.speak(currentConditionText, TextToSpeech.QUEUE_FLUSH, null);
+			            HashMap<String, String> ttsHash = new HashMap<String, String>();
+			            ttsHash.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_MUSIC));
+			            ttsHash.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "WEATHER");
+			            
+			            tts.speak(currentConditionText, TextToSpeech.QUEUE_FLUSH, ttsHash);
 			        }
 			    } catch (Exception e) {
 			    	e.printStackTrace();
@@ -585,10 +596,20 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void onInit(int stat) {
 		if (stat == TextToSpeech.SUCCESS) {
             tts.setLanguage(Locale.UK);
+            tts.setOnUtteranceCompletedListener(this);
+		}
+	}
+	
+	@Override
+	public void onUtteranceCompleted(String utteranceID) {
+		
+		if (utteranceID.equals("WEATHER")) {
+			eventScheduler.setEventAudioVolume(previousVolume);
 		}
 	}
 }

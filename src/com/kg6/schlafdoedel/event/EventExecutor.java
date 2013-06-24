@@ -34,7 +34,8 @@ public class EventExecutor extends Thread {
 	
 	private MediaPlayer mediaPlayer;
 	private EventAnimationPanel animationPanel;
-	private boolean enabled;	
+	private boolean enabled;
+	private float currentVolume;
 	
 	public EventExecutor(Activity context, EventScheduler eventScheduler, Event event, FrameLayout container) {
 		CONTEXT = context;
@@ -46,6 +47,7 @@ public class EventExecutor extends Thread {
 		this.animationPanel = null;
 		
 		this.enabled = true;
+		this.currentVolume = 0.0f;
 	}
 	
 	private void cleanup() {
@@ -92,6 +94,10 @@ public class EventExecutor extends Thread {
 		} catch (Exception e) {
 			Log.e("EventExecutor.java", "Unable to change the event media volume", e);
 		}
+	}
+	
+	public float getVolume() {
+		return currentVolume;
 	}
 	
 	public void run() {
@@ -177,6 +183,12 @@ public class EventExecutor extends Thread {
 			this.mediaPlayer.setDataSource(url);
 			this.mediaPlayer.prepare();
 			this.mediaPlayer.start();
+			 
+			AudioManager am = (AudioManager) CONTEXT.getSystemService(Context.AUDIO_SERVICE);
+			int streamVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+			int maxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+			
+			currentVolume = (float)streamVolume / (float)maxVolume;
 		} catch (Exception e) {
 			Log.e("EventExecutor.java", String.format("Unable to play audio from URL %s", url), e);
 			
