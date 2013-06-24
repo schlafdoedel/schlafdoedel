@@ -5,6 +5,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+import com.kg6.schlafdoedel.event.Event;
+
 import android.content.Context;
 import android.graphics.Point;
 import android.view.WindowManager;
@@ -18,22 +20,31 @@ public class Util {
 		return format.format(date);
 	}
 	
+	public static boolean IsEventToday(Event event) {
+		final int weekDay = GetCurrentDayOfWeek();
+		
+		if(event.getStart() > GetCurrentTime() && event.isRepeatedOnWeekday(weekDay)) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public static boolean IsDateTomorrow(Event event) {
+		final int nextWeekDay = (GetCurrentDayOfWeek() + 1) % NUM_WEEKDAYS;
+		
+		return !IsEventToday(event) && event.isRepeatedOnWeekday(nextWeekDay);
+	}
+	
 	public static String GetPrintableTimeOfDay(long timeOfDay) {
 		Date date = new Date(Util.GetMillisecondsOfDay() + timeOfDay);
 		
 		return GetTimeOfDatePrintableFormat(date);
 	}
 	
-	public static int GetDeviceWidth(Context context) {
-		Point windowSize = new Point();
-		WindowManager manager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
-		manager.getDefaultDisplay().getSize(windowSize);
-		
-		return windowSize.x;
-	}
-	
 	public static long GetMillisecondsOfDay() {
 		Calendar calendar = Calendar.getInstance();
+		
 		calendar.set(Calendar.HOUR_OF_DAY, 0);
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.SECOND, 0);
@@ -44,12 +55,19 @@ public class Util {
 	
 	public static long GetMillisecondsOfDay(int hour, int minute, int second) {
 		Calendar calendar = Calendar.getInstance();
+		
 		calendar.set(Calendar.HOUR_OF_DAY, hour);
 		calendar.set(Calendar.MINUTE, minute);
 		calendar.set(Calendar.SECOND, second);
 		calendar.set(Calendar.MILLISECOND, 0);
 		
 		return calendar.getTimeInMillis() - Util.GetMillisecondsOfDay();
+	}
+	
+	public static long GetCurrentTime() {
+		Calendar calendar = Calendar.getInstance();
+		
+		return calendar.getTimeInMillis() - GetMillisecondsOfDay();
 	}
 	
 	public static int GetDayOffset() {
@@ -107,6 +125,14 @@ public class Util {
 		}
 		
 		return "unknown";
+	}
+	
+	public static int GetDeviceWidth(Context context) {
+		Point windowSize = new Point();
+		WindowManager manager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
+		manager.getDefaultDisplay().getSize(windowSize);
+		
+		return windowSize.x;
 	}
 	
 	public static String GetTrimmedText(String text, int maxTextLength) {

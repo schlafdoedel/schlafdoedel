@@ -130,17 +130,35 @@ public class DigitalClock extends View {
 			canvas.drawBitmap(this.digits[second % 10], xPos, VIEW_TOP_MARGIN, DIGIT_PAINT);
 			
 			//upcoming event
-			if(this.eventScheduler != null) {
-				Event event = this.eventScheduler.getNextUpcomingEvent();
-				
-				if(event != null) {
-					String date = Util.GetPrintableTimeOfDay(event.getStart());
-					String text = String.format("Next event: %s", date);
-					final float textWidth = DIGIT_PAINT.measureText(text);
-					
-					canvas.drawText(text, MINIMUM_WIDTH / 2 - textWidth / 2, VIEW_DIGITS_HEIGHT + VIEW_DIGITS_SPACE, DIGIT_PAINT);
-				}
+			if(this.eventScheduler == null) {
+				return;
 			}
+			
+			Event event = this.eventScheduler.getNextUpcomingEvent();
+			
+			if(event == null) {
+				return;
+			}
+			
+			final boolean isToday = Util.IsEventToday(event);
+			final boolean isTomorrow = Util.IsDateTomorrow(event);
+			
+			if(!isToday && !isTomorrow) {
+				return;
+			}
+			
+			String firedOn = "today";
+			
+			if(isTomorrow) {
+				firedOn = "tomorrow";
+			}
+			
+			final String date = Util.GetPrintableTimeOfDay(event.getStart());
+			final String text = String.format("Next event (%s): %s", firedOn, date);
+			
+			final float textWidth = DIGIT_PAINT.measureText(text);
+			
+			canvas.drawText(text, MINIMUM_WIDTH / 2 - textWidth / 2, VIEW_DIGITS_HEIGHT + VIEW_DIGITS_SPACE, DIGIT_PAINT);
 		} catch (Exception e) {
 			Log.e("DigitalClock.java", "Unable to draw digital clock", e);
 		}

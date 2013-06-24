@@ -91,6 +91,14 @@ public class Event {
 		this.repetition[day] = enabled;
 	}
 	
+	public boolean isRepeatedOnWeekday(int day) {
+		if(day >= 0 && day < this.repetition.length) {
+			return this.repetition[day];
+		}
+		
+		return false;
+	}
+	
 	public boolean handle() {
 		final int dayOfWeek = Util.GetCurrentDayOfWeek();
 		final int dayOfYear = Util.GetCurrentDayOfYear();
