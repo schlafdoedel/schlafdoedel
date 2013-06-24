@@ -96,6 +96,18 @@ public class EventScheduler extends Thread {
 		return Collections.unmodifiableList(this.eventList);
 	}
 	
+	public void setEventAudioVolume(float volume) {
+		try {
+			for(int i = 0; i < this.eventExecutorList.size(); i++) {
+				EventExecutor eventExecutor = this.eventExecutorList.get(i);
+				
+				eventExecutor.setVolume(volume);
+			}
+		} catch (Exception e) {
+			Log.e("EventScheduler.java", "Unable to change the event media volume", e);
+		}
+	}
+	
 	public Event getNextUpcomingEvent() {
 		Event nextEvent = null;
 		Event firstEvent = null;

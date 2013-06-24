@@ -84,6 +84,16 @@ public class EventExecutor extends Thread {
 		return !this.enabled;
 	}
 	
+	public void setVolume(float volume) {
+		try {
+			if(this.mediaPlayer != null) {
+				this.mediaPlayer.setVolume(volume, volume);
+			}
+		} catch (Exception e) {
+			Log.e("EventExecutor.java", "Unable to change the event media volume", e);
+		}
+	}
+	
 	public void run() {
 		try {
 			prepareViewContainer();
