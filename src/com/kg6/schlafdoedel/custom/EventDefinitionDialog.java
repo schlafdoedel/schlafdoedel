@@ -49,6 +49,7 @@ public class EventDefinitionDialog extends Dialog {
 	private final EventScheduler EVENT_SCHEDULER;
 	
 	private EditText titleTextBox;
+	private LinearLayout suggestionsLayout;
 	
 	private WheelView startWheelHours;
 	private WheelView startWheelMinutes;
@@ -132,18 +133,16 @@ public class EventDefinitionDialog extends Dialog {
 		addRow(contentLayout, "Event title", this.titleTextBox);
 		
 		//related dates from the calendar
-		if(this.predefinedEvent == null) {
-			List<CalendarEvent> calendarDateList = getCalendarDates();
+		List<CalendarEvent> calendarDateList = getCalendarDates();
+		
+		if(calendarDateList.size() > 0) {
+			LinearLayout relatedDatesLayout = new LinearLayout(getContext());
+			relatedDatesLayout.setOrientation(LinearLayout.VERTICAL);
 			
-			if(calendarDateList.size() > 0) {
-				LinearLayout relatedDatesLayout = new LinearLayout(getContext());
-				relatedDatesLayout.setOrientation(LinearLayout.VERTICAL);
-				
-				addRow(contentLayout, "Suggestions", relatedDatesLayout);
-				
-				for(CalendarEvent event : calendarDateList) {
-					addRow(relatedDatesLayout, event);
-				}
+			this.suggestionsLayout = addRow(contentLayout, "Suggestions", relatedDatesLayout);
+			
+			for(CalendarEvent event : calendarDateList) {
+				addRow(relatedDatesLayout, event);
 			}
 		}
 		
@@ -517,10 +516,15 @@ public class EventDefinitionDialog extends Dialog {
 			}
 		}
 		
+		//hide the suggestions layout
+		if(this.suggestionsLayout != null) {
+			this.suggestionsLayout.setVisibility(View.GONE);
+		}
+		
 		this.addEventButton.setText("Update event");
 	}
 	
-	private void addRow(LinearLayout container, String text, View control) {
+	private LinearLayout addRow(LinearLayout container, String text, View control) {
 		TextView textView = new TextView(CONTEXT);
 		textView.setText(text);
 		
@@ -535,6 +539,8 @@ public class EventDefinitionDialog extends Dialog {
 		entryLayout.bottomMargin = 10;
 		
 		container.addView(rowLayout, entryLayout);
+		
+		return rowLayout;
 	}
 	
 	private void addRow(LinearLayout container, final CalendarEvent calendarEvent) {

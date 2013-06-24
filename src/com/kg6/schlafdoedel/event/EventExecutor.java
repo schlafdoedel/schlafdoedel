@@ -138,7 +138,7 @@ public class EventExecutor extends Thread {
 					CONTAINER.removeView(animationPanel);
 				}
 				
-				animationPanel = new EventAnimationPanel(CONTEXT);
+				animationPanel = new EventAnimationPanel(CONTEXT, EVENT.getTitle());
 				
 				CONTAINER.addView(animationPanel, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 			}
@@ -235,6 +235,8 @@ public class EventExecutor extends Thread {
 		private final Paint TEXT_FOREGROUND_PAINT;
 		private final Paint TEXT_BACKGROUND_PAINT;
 		
+		private final String ANIMATION_TEXT;
+		
 		private final Random RANDOM;
 		
 		private Bitmap eventBitmap;
@@ -243,8 +245,10 @@ public class EventExecutor extends Thread {
 		
 		private boolean backgroundBlinkingAnimationEnabled;
 
-		public EventAnimationPanel(Context context) {
+		public EventAnimationPanel(Context context, String animationText) {
 			super(context);
+			
+			ANIMATION_TEXT = animationText;
 			
 			TEXT_FOREGROUND_PAINT = new Paint();
 			TEXT_FOREGROUND_PAINT.setColor(Color.WHITE);
@@ -312,13 +316,11 @@ public class EventExecutor extends Thread {
 			}
 			
 			//Draw the text
-			final String text = EVENT.getTitle();
-			
-			final int x = halfWidth - (int)(TEXT_FOREGROUND_PAINT.measureText(text) / 2f);
+			final int x = halfWidth - (int)(TEXT_FOREGROUND_PAINT.measureText(ANIMATION_TEXT) / 2f);
 			final int y = halfHeight;
 			
-			canvas.drawText(text, x, y, TEXT_BACKGROUND_PAINT);
-			canvas.drawText(text, x, y, TEXT_FOREGROUND_PAINT);
+			canvas.drawText(ANIMATION_TEXT, x, y, TEXT_BACKGROUND_PAINT);
+			canvas.drawText(ANIMATION_TEXT, x, y, TEXT_FOREGROUND_PAINT);
 		}
 	}
 }
