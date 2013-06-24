@@ -6,7 +6,7 @@ public class Configuration {
 	public static final String COMMAND_SLEEPING_PHASE_SHALLOW = "COMMAND_SLEEPING_PHASE_SHALLOW";
 	
 	public static final String WEATHER_API_URL_1 = "http://api.worldweatheronline.com/free/v1/weather.ashx?q=";
-	public static final String WEATHER_API_URL_2 = "&format=xml&num_of_days=2&key=95vtwa8kve578cfrjhv2mmnx";
+	public static final String WEATHER_API_URL_2 = "&format=json&num_of_days=2&key=95vtwa8kve578cfrjhv2mmnx";
 	
 	public static final int EVENT_MAXIMUM_DURATION = 1000 * 60 * 60 * 2; //in ms
 	

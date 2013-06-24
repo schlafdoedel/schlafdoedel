@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Set;
 
 import org.apache.http.HttpEntity;
@@ -13,7 +14,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -24,6 +26,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.TextToSpeech.OnInitListener;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -56,7 +60,8 @@ import com.kg6.schlafdoedel.network.NetworkEvent;
 import com.kg6.schlafdoedel.speechrecognition.SpeechRecognition;
 
 @SuppressLint("UseSparseArrays")
-public class Overview extends Activity implements NetworkEvent, EventNotification {
+public class Overview extends Activity implements NetworkEvent, EventNotification, OnInitListener {
+	
 	private BluetoothConnection bluetoothConnection;
 	private EventScheduler eventScheduler;
 
@@ -65,6 +70,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	private EventListPanel eventListPanel;
 	
 	private SpeechRecognitionDialog speechRecognitionDialog;
+	private TextToSpeech tts;
 	
 	private HashMap<Integer, View> availableStatusTabsHash;
 	
@@ -80,6 +86,8 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		this.speechRecognitionDialog = new SpeechRecognitionDialog(this);
 		
 		this.availableStatusTabsHash = new HashMap<Integer, View>();
+		
+		this.tts = new TextToSpeech(this, this);
 
 		addOptionsButtonListener();
 		addBluetoothButtonListener();
@@ -116,6 +124,11 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
     @Override
     protected void onDestroy() {
     	stopService(new Intent(this, SpeechRecognition.class));
+    	
+    	if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
     }
 
 	private void createTestEvents() {
@@ -483,8 +496,9 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_DEACTIVATED) == 0) {
 						hideSpeechRecognitionSymbol();
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_WEATHER) == 0) {
+						Thread weather = new WeatherRequest();
+						weather.start();
 						System.out.println("WEATHER!!");
-						getWeather();
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_NEWS) == 0) {
 						//TODO
 					} else {
@@ -516,59 +530,66 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			dismiss();
 		}
 		
-		private void getWeather() {
+		private class WeatherRequest extends Thread {
 			
-			HttpClient httpclient = new DefaultHttpClient();
-
-		    // Prepare a request object
-		    HttpGet httpget = new HttpGet(Configuration.WEATHER_API_URL_1 + "Linz" + Configuration.WEATHER_API_URL_2); 
-
-		    // Execute the request
-		    HttpResponse response;
-		    
-		    try {
-		        response = httpclient.execute(httpget);
-		        // Examine the response status
-		        Log.i("Praeda",response.getStatusLine().toString());
-
-		        // Get hold of the response entity
-		        HttpEntity entity = response.getEntity();
-		        // If the response does not enclose an entity, there is no need
-		        // to worry about connection release
-
-		        if (entity != null) {
-
-		            // A Simple JSON Response Read
-		            InputStream instream = entity.getContent();
-		            String result= convertStreamToString(instream);
-		            // now you have the string representation of the HTML request
-		            instream.close();
-		        }
-
-
-		    } catch (Exception e) {}
-		}
-
-		private String convertStreamToString(InputStream instream) {
+			@Override
+			public void run() {
+				
+				HttpClient client = new DefaultHttpClient();
+				HttpGet getCommand = new HttpGet(Configuration.WEATHER_API_URL_1 + "Linz" + Configuration.WEATHER_API_URL_2); 
+				HttpResponse response;
+			    
+			    try {
+			        response = client.execute(getCommand);
+			        HttpEntity entity = response.getEntity();
+			        
+			        Log.i("HTTPResponseStatus",response.getStatusLine().toString());
+			        
+			        if (entity != null) {
+			        	
+			        	InputStream in = entity.getContent();
+			            
+			            String result= convertInputStreamToString(in);
+			            in.close();
+			            
+			            JSONObject weatherData = new JSONObject(result);
+			            JSONObject data = weatherData.getJSONObject("data");
+			            JSONObject currentCondition = data.getJSONArray("current_condition").getJSONObject(0);
+			            
+			            String currentConditionText = "The current condition is " +
+			            		currentCondition.getJSONArray("weatherDesc").getJSONObject(0).getString("value").toLowerCase() +
+			            		" at " + currentCondition.getString("temp_C") + " degrees celcius, dude";
+			            
+			            tts.speak(currentConditionText, TextToSpeech.QUEUE_FLUSH, null);
+			        }
+			    } catch (Exception e) {
+			    	e.printStackTrace();
+			    }
+			}
 			
-			BufferedReader reader = new BufferedReader(new InputStreamReader(instream));
-		    StringBuilder sb = new StringBuilder();
-
-		    String line = null;
-		    try {
-		        while ((line = reader.readLine()) != null) {
-		            sb.append(line + "\n");
-		        }
-		    } catch (IOException e) {
-		        e.printStackTrace();
-		    } finally {
-		        try {
-		            instream.close();
-		        } catch (IOException e) {
-		            e.printStackTrace();
-		        }
-		    }
-		    return sb.toString();
+			private String convertInputStreamToString(InputStream in) {
+				
+				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+			    StringBuilder finalString = new StringBuilder();
+			    String currentLine = null;
+			    
+			    try {
+			        while ((currentLine = reader.readLine()) != null) {
+			        	finalString.append(currentLine + "\n");
+			        }
+			    } catch (IOException e) {
+			        e.printStackTrace();
+			    }
+			    
+			    return finalString.toString();
+			}
 		}
-	} 
+	}
+
+	@Override
+	public void onInit(int stat) {
+		if (stat == TextToSpeech.SUCCESS) {
+            tts.setLanguage(Locale.UK);
+		}
+	}
 }
