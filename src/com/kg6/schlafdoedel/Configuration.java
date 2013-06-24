@@ -1,5 +1,9 @@
 package com.kg6.schlafdoedel;
 
+import com.kg6.schlafdoedel.custom.Util;
+import com.kg6.schlafdoedel.event.EventSource;
+import com.kg6.schlafdoedel.event.EventSource.SourceType;
+
 public class Configuration {
 	public static final String COMMAND_SLEEPING_PHASE_AWAKE = "COMMAND_SLEEPING_PHASE_AWAKE";
 	public static final String COMMAND_SLEEPING_PHASE_DEEP = "COMMAND_SLEEPING_PHASE_DEEP";
@@ -8,7 +12,10 @@ public class Configuration {
 	public static final String WEATHER_API_URL_1 = "http://api.worldweatheronline.com/free/v1/weather.ashx?q=";
 	public static final String WEATHER_API_URL_2 = "&format=json&num_of_days=2&key=95vtwa8kve578cfrjhv2mmnx";
 	
-	public static final int EVENT_MAXIMUM_DURATION = 1000 * 60 * 60 * 2; //in ms
+	public static final int EVENT_MAXIMUM_DURATION = Util.GetHourOffset() * 2; //in ms
+	public static final int EVENT_AUTODEFINITION_START_OFFSET = Util.GetHourOffset() * 2; //in ms 
+	public static final int EVENT_AUTODEFINITION_END_OFFSET = EVENT_AUTODEFINITION_START_OFFSET + Util.GetMinuteOffset() * 30; //in ms 
+	public static final EventSource EVENT_AUTODEFINITION_DEFAULT_SOURCE = new EventSource(SourceType.Music, "http://onair.krone.at/kronehit.mp3");
 	
 	public static final float WINDOW_MAX_BRIGHTNESS = 0.8f;
 	public static final float WINDOW_MIN_BRIGHTNESS = 0f;

@@ -52,16 +52,40 @@ public class Util {
 		return calendar.getTimeInMillis() - Util.GetMillisecondsOfDay();
 	}
 	
+	public static int GetDayOffset() {
+		return 1000 * 60 * 60 * 24;
+	}
+	
+	public static int GetHourOffset() {
+		return 1000 * 60 * 60;
+	}
+	
+	public static int GetMinuteOffset() {
+		return 1000 * 60;
+	}
+	
 	public static int GetHourOfTimestamp(long timestamp) {
-		return (int)(timestamp / (1000 * 60 * 60));
+		return (int)(timestamp / GetHourOffset());
 	}
 	
 	public static int GetMinuteOfTimestamp(long timestamp) {
-		return (int)(timestamp / (1000 * 60));
+		return (int)(timestamp / GetMinuteOffset());
 	}
 	
 	public static int GetNumberOfWeekdays() {
 		return NUM_WEEKDAYS;
+	}
+	
+	public static int GetCurrentDayOfWeek() {
+		Calendar calendar = Calendar.getInstance();
+		
+		return calendar.get(Calendar.DAY_OF_WEEK);
+	}
+	
+	public static int GetCurrentDayOfYear() {
+		Calendar calendar = Calendar.getInstance();
+		
+		return calendar.get(Calendar.DAY_OF_YEAR);
 	}
 	
 	public static String getWeekdayPrintname(int weekday) {

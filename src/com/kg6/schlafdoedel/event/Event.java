@@ -1,12 +1,10 @@
 package com.kg6.schlafdoedel.event;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
 import com.kg6.schlafdoedel.custom.Util;
-
 
 public class Event {
 	private static int IdCounter = 1;
@@ -94,9 +92,8 @@ public class Event {
 	}
 	
 	public boolean handle() {
-		Calendar calendar = Calendar.getInstance();
-		final int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-		final int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
+		final int dayOfWeek = Util.GetCurrentDayOfWeek();
+		final int dayOfYear = Util.GetCurrentDayOfYear();
 		
 		//Check whether the repetition is enabled for the current day
 		if(this.repetition.length > dayOfWeek && !this.repetition[dayOfWeek]) {

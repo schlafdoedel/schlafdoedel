@@ -98,6 +98,8 @@ public class EventExecutor extends Thread {
 					case Music:
 						startPlayback(source);
 						break;
+					default:
+						return;
 				}
 			}
 			

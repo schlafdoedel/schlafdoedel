@@ -10,8 +10,12 @@ import kankan.wheel.widget.WheelView;
 import kankan.wheel.widget.adapters.NumericWheelAdapter;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
+import android.provider.CalendarContract;
+import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -78,62 +82,18 @@ public class EventDefinitionDialog extends Dialog {
 		initializeControls();
 	}
 	
+	public void setMusicSource(String source) {
+		this.musicSourceTextBox.setText(source);
+	}
+	
+	public void setImageSource(String source) {
+		this.imageSourceTextBox.setText(source);
+	}
+	
 	public void setEvent(Event event) {
 		this.predefinedEvent = event;
 		
-		this.titleTextBox.setText(event.getTitle());
-		
-		this.startWheelHours.setCurrentItem(Util.GetHourOfTimestamp(event.getStart()));
-		this.startWheelMinutes.setCurrentItem(Util.GetMinuteOfTimestamp(event.getStart()));
-		
-		this.endWheelHours.setCurrentItem(Util.GetHourOfTimestamp(event.getEnd()));
-		this.endWheelMinutes.setCurrentItem(Util.GetMinuteOfTimestamp(event.getEnd()));
-		
-		final boolean[] repetition = event.getRepetition();
-		
-		for(int i = 0; i < this.repetitionCheckBoxes.length; i++) {
-			repetitionCheckBoxes[i].setChecked(repetition[i]);
-		}
-		
-		final SpinnerAdapter spinnerAdapter = this.radioSourceSpinner.getAdapter();
-		
-		List<EventSource> handledEventSourceList = new ArrayList<EventSource>();
-		
-		for(int i = 0; i < spinnerAdapter.getCount(); i++) {
-			String entry = spinnerAdapter.getItem(i).toString();
-			
-			boolean elementSelected = false;
-			
-			for(EventSource source : event.getEventSourceList()) {
-				if(source.getSourceType() == SourceType.Music && entry.compareTo(source.getUrl()) == 0) {
-					this.radioSourceSpinner.setSelection(i);
-					
-					handledEventSourceList.add(source);
-					
-					elementSelected = true;
-					
-					break;
-				}
-			}
-			
-			if(elementSelected) {
-				break;
-			}
-		}
-		
-		for(EventSource source : event.getEventSourceList()) {
-			if(handledEventSourceList.contains(source)) {
-				continue;
-			}
-			
-			if(source.getSourceType() == SourceType.Music) {
-				this.musicSourceTextBox.setText(source.getUrl());
-			} else if(source.getSourceType() == SourceType.Image) {
-				this.imageSourceTextBox.setText(source.getUrl());
-			}
-		}
-		
-		this.addEventButton.setText("Update event");
+		updateControls(event);
 	}
 	
 	private void initializeControls() {
@@ -170,6 +130,22 @@ public class EventDefinitionDialog extends Dialog {
 		this.titleTextBox.setText(getDefaultEventTitle());
 		
 		addRow(contentLayout, "Event title", this.titleTextBox);
+		
+		//related dates from the calendar
+		if(this.predefinedEvent == null) {
+			List<CalendarEvent> calendarDateList = getCalendarDates();
+			
+			if(calendarDateList.size() > 0) {
+				LinearLayout relatedDatesLayout = new LinearLayout(getContext());
+				relatedDatesLayout.setOrientation(LinearLayout.VERTICAL);
+				
+				addRow(contentLayout, "Suggestions", relatedDatesLayout);
+				
+				for(CalendarEvent event : calendarDateList) {
+					addRow(relatedDatesLayout, event);
+				}
+			}
+		}
 		
 		//start
 		final int[] expectedWakeupTime = getNextWakeUpTime();
@@ -360,7 +336,6 @@ public class EventDefinitionDialog extends Dialog {
 		
 		addRow(contentLayout, "Show image from", imageSourceLayout);
 		
-		
 		//weather event type
 		LinearLayout weatherSourceLayout = new LinearLayout(CONTEXT);
 		weatherSourceLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -485,12 +460,64 @@ public class EventDefinitionDialog extends Dialog {
 		this.endWheelMinutes.addChangingListener(wheelChangeListener);
 	}
 	
-	public void setMusicSource(String source) {
-		this.musicSourceTextBox.setText(source);
-	}
-	
-	public void setImageSource(String source) {
-		this.imageSourceTextBox.setText(source);
+	private void updateControls(Event event) {
+		this.titleTextBox.setText(event.getTitle());
+		
+		this.startWheelHours.setCurrentItem(Util.GetHourOfTimestamp(event.getStart()));
+		this.startWheelMinutes.setCurrentItem(Util.GetMinuteOfTimestamp(event.getStart()));
+		
+		this.endWheelHours.setCurrentItem(Util.GetHourOfTimestamp(event.getEnd()));
+		this.endWheelMinutes.setCurrentItem(Util.GetMinuteOfTimestamp(event.getEnd()));
+		
+		//selected repetition
+		final boolean[] repetition = event.getRepetition();
+		
+		for(int i = 0; i < this.repetitionCheckBoxes.length; i++) {
+			repetitionCheckBoxes[i].setChecked(repetition[i]);
+		}
+		
+		//selected radio station
+		final SpinnerAdapter spinnerAdapter = this.radioSourceSpinner.getAdapter();
+		
+		List<EventSource> handledEventSourceList = new ArrayList<EventSource>();
+		
+		for(int i = 0; i < spinnerAdapter.getCount(); i++) {
+			final String entryName = spinnerAdapter.getItem(i).toString();
+			final String entryUrl = getInternetRadioUrl(entryName);
+			
+			boolean elementSelected = false;
+			
+			for(EventSource source : event.getEventSourceList()) {
+				if(source.getSourceType() == SourceType.Music && entryUrl.compareTo(source.getUrl()) == 0) {
+					this.radioSourceSpinner.setSelection(i);
+					
+					handledEventSourceList.add(source);
+					
+					elementSelected = true;
+					
+					break;
+				}
+			}
+			
+			if(elementSelected) {
+				break;
+			}
+		}
+		
+		//selected event source
+		for(EventSource source : event.getEventSourceList()) {
+			if(handledEventSourceList.contains(source)) {
+				continue;
+			}
+			
+			if(source.getSourceType() == SourceType.Music) {
+				this.musicSourceTextBox.setText(source.getUrl());
+			} else if(source.getSourceType() == SourceType.Image) {
+				this.imageSourceTextBox.setText(source.getUrl());
+			}
+		}
+		
+		this.addEventButton.setText("Update event");
 	}
 	
 	private void addRow(LinearLayout container, String text, View control) {
@@ -510,8 +537,32 @@ public class EventDefinitionDialog extends Dialog {
 		container.addView(rowLayout, entryLayout);
 	}
 	
+	private void addRow(LinearLayout container, final CalendarEvent calendarEvent) {
+		Button addCalendarEventButton = new Button(CONTEXT);
+		addCalendarEventButton.setText(String.format("Get up before %s: %s", Util.GetPrintableTimeOfDay(calendarEvent.getStartTime()), calendarEvent.getTitle()));
+		
+		container.addView(addCalendarEventButton, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+		
+		addCalendarEventButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				final long startTime = calendarEvent.getStartTime() - Configuration.EVENT_AUTODEFINITION_START_OFFSET;
+				final long endTime = startTime + Configuration.EVENT_AUTODEFINITION_END_OFFSET;
+				
+				final int currentDayOfWeek = Util.GetCurrentDayOfWeek();
+				
+				Event event = new Event(String.format("Get up for: %s", calendarEvent.getTitle()), startTime, endTime);
+				event.setRepetition(currentDayOfWeek, true);
+				event.addEventSource(Configuration.EVENT_AUTODEFINITION_DEFAULT_SOURCE);
+				
+				updateControls(event);
+			}
+		});
+	}
+	
 	private String getDefaultEventTitle() {
-		return "New event " + Event.GetNextEventId();
+		return String.format("New event %s", Event.GetNextEventId());
 	}
 	
 	private List<Pair<String, String>> getInternetRadioList() {
@@ -521,6 +572,20 @@ public class EventDefinitionDialog extends Dialog {
 		internetRadioList.add(new Pair<String, String>("Klassik radio (classic)", "http://edge.live.mp3.mdn.newmedia.nacamar.net/klassikradio128/livestream.mp3"));
 		
 		return internetRadioList;
+	}
+	
+	private String getInternetRadioUrl(String name) {
+		final List<Pair<String, String>> internetRadioList = getInternetRadioList();
+		
+		for(Pair<String, String> entry : internetRadioList) {
+			String entryName = entry.first;
+			
+			if(entryName.compareTo(name) == 0) {
+				return entry.second;
+			}
+		}
+		
+		return "";
 	}
 
 	private int[] getNextWakeUpTime() {
@@ -544,5 +609,65 @@ public class EventDefinitionDialog extends Dialog {
 		}
 		
 		return expectedRepetition;
+	}
+	
+	private List<CalendarEvent> getCalendarDates() {
+		List<CalendarEvent> resultList = new ArrayList<CalendarEvent>();
+		
+		Cursor cursor = null;
+		
+		try {
+			final long dayOffset = Util.GetDayOffset();
+			final long minTimestamp = Util.GetMillisecondsOfDay() + dayOffset;
+			final long maxTimestamp = minTimestamp + dayOffset;
+			
+			final String[] columns = new String[] { 
+				CalendarContract.Events.TITLE, 
+				CalendarContract.Events.DTSTART 
+			};
+			
+			ContentResolver contentResolver = CONTEXT.getContentResolver();
+			
+			cursor = contentResolver.query(CalendarContract.Events.CONTENT_URI, columns, null, null, null); 
+			cursor.moveToFirst();
+			
+			while(cursor.moveToNext()) {
+				final long startTimestamp = cursor.getLong(1);
+				
+				if(startTimestamp >= minTimestamp && startTimestamp < maxTimestamp) {
+					resultList.add(new CalendarEvent(cursor.getString(0), startTimestamp - Util.GetMillisecondsOfDay()));
+				}
+			}
+		} catch (Exception e) {
+			Log.e("EventDefinitionDialog.java", "Unable to get calendar dates", e);
+		} finally {
+			try {
+				if(cursor != null) {
+					cursor.close();
+				}
+			} catch (Exception e) {
+				
+			}
+		}
+		
+		return resultList;
+	}
+	
+	private class CalendarEvent {
+		private String title;
+		private long startTime;
+		
+		public CalendarEvent(String title, long startTime) {
+			this.title = title;
+			this.startTime = startTime;
+		}
+
+		public String getTitle() {
+			return title;
+		}
+
+		public long getStartTime() {
+			return startTime;
+		}
 	}
 }
