@@ -56,6 +56,13 @@ public class Util {
 	public static long GetMillisecondsOfDay(int hour, int minute, int second) {
 		Calendar calendar = Calendar.getInstance();
 		
+		while(minute > 60) {
+			minute -= 60;
+			hour++;
+		}
+		
+		hour = hour % 24;
+		
 		calendar.set(Calendar.HOUR_OF_DAY, hour);
 		calendar.set(Calendar.MINUTE, minute);
 		calendar.set(Calendar.SECOND, second);

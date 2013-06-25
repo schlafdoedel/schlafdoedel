@@ -104,6 +104,16 @@ public class EventExecutor extends Thread {
 		try {
 			prepareViewContainer();
 			
+			//Wait for the panel initialization
+			while(this.enabled && this.animationPanel == null) {
+				try {
+					Thread.sleep(100);
+				} catch (Exception e) {
+					
+				}
+			}
+			
+			//Load data from event sources
 			List<EventSource> eventSourceList = EVENT.getEventSourceList();
 			
 			for(EventSource source : eventSourceList) {
@@ -119,14 +129,7 @@ public class EventExecutor extends Thread {
 				}
 			}
 			
-			while(this.enabled && this.animationPanel == null) {
-				try {
-					Thread.sleep(100);
-				} catch (Exception e) {
-					
-				}
-			}
-			
+			//Let the background blink, if no bitmap was defined
 			if(this.animationPanel != null && this.animationPanel.getEventBitmap() == null) {
 				this.animationPanel.setBackgroundBlinkingAnimationEnabled(true);
 			}
@@ -189,6 +192,7 @@ public class EventExecutor extends Thread {
 			this.mediaPlayer = new MediaPlayer();
 			this.mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 			this.mediaPlayer.setDataSource(url);
+			this.mediaPlayer.setLooping(true);
 			this.mediaPlayer.prepare();
 			this.mediaPlayer.start();
 			 

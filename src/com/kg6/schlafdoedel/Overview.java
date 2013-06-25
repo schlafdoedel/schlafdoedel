@@ -381,6 +381,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 				this.eventScheduler.setScreenBrightness(Configuration.WINDOW_MAX_BRIGHTNESS);
 			} else {
 				this.eventScheduler.setScreenBrightness(Configuration.WINDOW_MIN_BRIGHTNESS);
+				this.eventScheduler.dismissAllEvents();
 			}
 		}
 	}
@@ -439,6 +440,8 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	}
 	
 	public class SpeechRecognitionDialog extends Dialog {
+		final String TITLE = "How can I help you, master?";
+		
 		private BroadcastReceiver broadcastReceiver;
 		
 		private LinearLayout contentContainerLayout;
@@ -453,11 +456,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		}
 		
 		private void initializeControls() {
-			final String title = "How can I help you, master?";
-			
-			InformationRequest.ExecuteTextToSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED, title);
-			
-			setTitle(title);
+			setTitle(TITLE);
 			
 			this.contentContainerLayout = new LinearLayout(getContext());
 			this.contentContainerLayout.setOrientation(LinearLayout.VERTICAL);
@@ -482,6 +481,10 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 						InformationRequest.RequestWeatherInformation(Overview.this);
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_NEWS) == 0) {
 						InformationRequest.RequestNewsInformation(Overview.this);
+					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_SLEEP) == 0) {
+						if(eventScheduler != null) {
+							eventScheduler.playRelaxingMusic();
+						}
 					} else {
 						Toast.makeText(Overview.this, String.format("Command %s can not be handled", command), Toast.LENGTH_SHORT).show();
 					}
@@ -503,6 +506,8 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			this.contentContainerLayout.addView(this.avatarImageView, avatarImageParams);
 			
 			show();
+			
+			InformationRequest.ExecuteTextToSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED, TITLE);
 		}
 		
 		private void hideSpeechRecognitionSymbol() {

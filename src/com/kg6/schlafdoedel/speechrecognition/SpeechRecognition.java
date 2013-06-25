@@ -84,6 +84,7 @@ public class SpeechRecognition extends Service {
 			String[] availableCommands = new String[] {
 				Configuration.SPEECH_RECOGNITION_COMMAND_WEATHER,
 				Configuration.SPEECH_RECOGNITION_COMMAND_NEWS,
+				Configuration.SPEECH_RECOGNITION_COMMAND_SLEEP,
 			};
 			
 			for(String command : availableCommands) {

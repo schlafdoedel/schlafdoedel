@@ -1,8 +1,10 @@
 package com.kg6.schlafdoedel.event;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import android.app.Activity;
 import android.util.Log;
@@ -12,6 +14,7 @@ import android.widget.FrameLayout;
 
 import com.kg6.schlafdoedel.Configuration;
 import com.kg6.schlafdoedel.custom.Util;
+import com.kg6.schlafdoedel.event.EventSource.SourceType;
 
 public class EventScheduler extends Thread {
 	private static EventScheduler eventScheduler;
@@ -30,6 +33,8 @@ public class EventScheduler extends Thread {
 	
 	private final int SCHEDULER_SLEEPTIME = 1000;
 	
+	private final Random RANDOM;
+	
 	private final Activity CONTEXT;
 	private final FrameLayout CONTAINER;
 	
@@ -44,6 +49,8 @@ public class EventScheduler extends Thread {
 	private EventScheduler(Activity context, FrameLayout container) {
 		CONTEXT = context;
 		CONTAINER = container;
+		
+		RANDOM = new Random();
 		
 		this.eventList = new ArrayList<Event>();
 		this.eventExecutorList = new ArrayList<EventExecutor>();
@@ -159,6 +166,22 @@ public class EventScheduler extends Thread {
 		}
 	}
 	
+	public void playRelaxingMusic() {
+		Calendar now = Calendar.getInstance();
+		
+		final int hour = now.get(Calendar.HOUR_OF_DAY);
+		final int minute = now.get(Calendar.MINUTE);
+		final int second = now.get(Calendar.SECOND) + 2;
+		
+		Event event = new Event("Have a nice sleep!", Util.GetMillisecondsOfDay(hour, minute, second), Util.GetMillisecondsOfDay(hour, minute + 30, second));
+		event.setRepetition(Util.GetCurrentDayOfWeek(), true);
+		
+		event.addEventSource(new EventSource(SourceType.Image, "http://wallpapersget.com/wallpapers/2012/02/nature-tree-beautiful-wallpaper-relaxing-scenic-1080x1920.jpg"));
+		event.addEventSource(new EventSource(SourceType.Music, Configuration.EVENT_RELAXING_MUSIC_SOURCES[RANDOM.nextInt(Configuration.EVENT_RELAXING_MUSIC_SOURCES.length)]));
+				
+		addEvent(event);
+	}
+	
 	public void run() {
 		while(isEnabled()) {
 			try {
@@ -222,21 +245,44 @@ public class EventScheduler extends Thread {
 
 			@Override
 			public void run() {
-				float nextScreenBrightness = brightness;
-				
-				if(eventExecutorList.size() > 0) {
-					nextScreenBrightness = 1;
+				try {
+					float nextScreenBrightness = brightness;
+					
+					if(eventExecutorList.size() > 0) {
+						nextScreenBrightness = 1;
+					}
+					
+					//Modify the brightness
+					Window myWindow = CONTEXT.getWindow();
+	
+					WindowManager.LayoutParams winParams = myWindow.getAttributes();
+					winParams.screenBrightness = nextScreenBrightness;
+	
+					myWindow.setAttributes(winParams);
+				} catch (Exception e) {
+					Log.e("EventScheduler.java", "Unable to change screen brightness", e);
 				}
-				
-				//Modify the brightness
-				Window myWindow = CONTEXT.getWindow();
-
-				WindowManager.LayoutParams winParams = myWindow.getAttributes();
-				winParams.screenBrightness = nextScreenBrightness;
-
-				myWindow.setAttributes(winParams);
 			}
 
+		});
+	}
+	
+	public void dismissAllEvents() {
+		CONTEXT.runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					for(int i = 0; i < eventExecutorList.size(); i++) {
+						EventExecutor eventExecutor = eventExecutorList.get(i);
+						
+						dismissEvent(eventExecutor.getEvent());
+					}
+				} catch (Exception e) {
+					Log.e("EventScheduler.java", "Unable to dismiss all executed events", e);
+				}
+			}
+			
 		});
 	}
 	
