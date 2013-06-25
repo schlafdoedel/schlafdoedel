@@ -127,8 +127,6 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		}
 		
 		this.eventScheduler.addEvent(event);
-
-		this.eventScheduler.setSleepingPhase(Configuration.COMMAND_SLEEPING_PHASE_SHALLOW);
 	}
 
 	@Override
@@ -393,7 +391,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 				this.eventScheduler.setScreenBrightness(Configuration.WINDOW_MAX_BRIGHTNESS);
 			} else {
 				this.eventScheduler.setScreenBrightness(Configuration.WINDOW_MIN_BRIGHTNESS);
-				this.eventScheduler.dismissAllEvents();
+				this.eventScheduler.dismissAllRelaxingEvents();
 			}
 		}
 	}
