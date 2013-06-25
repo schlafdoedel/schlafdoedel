@@ -90,8 +90,10 @@ public class BluetoothConnection extends NetworkConnection {
 			if(this.server == null || !this.server.isAlive()) {
 				BluetoothAdapter bluetoothAdapter = getBlueToothAdapter();
 				
-				this.server = new BluetoothServer(bluetoothAdapter);
-				this.server.start();
+				if(bluetoothAdapter != null) {
+					this.server = new BluetoothServer(bluetoothAdapter);
+					this.server.start();
+				}
 			}
 		} catch (Exception e) {
 			this.server = null;
@@ -106,8 +108,10 @@ public class BluetoothConnection extends NetworkConnection {
 			if(this.client == null || !this.client.isAlive()) {
 				BluetoothAdapter bluetoothAdapter = getBlueToothAdapter();
 				
-				this.client = new BluetoothClient(bluetoothAdapter);
-				this.client.start();
+				if(bluetoothAdapter != null) {
+					this.client = new BluetoothClient(bluetoothAdapter);
+					this.client.start();
+				}
 			}
 		} catch (Exception e) {
 			this.client = null;
@@ -155,6 +159,13 @@ public class BluetoothConnection extends NetworkConnection {
 			CONTEXT.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
 		}
 		
+		//Try to cancel the device discovery
+		try {
+			bluetoothAdapter.cancelDiscovery();
+		} catch (Exception e) {
+			Log.e("BluetoothConnection.java", "Unable to cancel bluetooth discovery", e);
+		}
+		
 		return bluetoothAdapter;
 	}
 	
@@ -193,7 +204,7 @@ public class BluetoothConnection extends NetworkConnection {
 			try {
 				UUID uuid = UUID.nameUUIDFromBytes(BLUETOOTH_ADAPTER.getAddress().getBytes());
 				
-				this.serverSocket = BLUETOOTH_ADAPTER.listenUsingInsecureRfcommWithServiceRecord("Overview", uuid); 
+				this.serverSocket = BLUETOOTH_ADAPTER.listenUsingInsecureRfcommWithServiceRecord("Schlafdoedel overview", uuid); 
 			} catch (Exception e) {
 				Log.e("BluetoothConnection.java", "Unable to start the server socket", e);
 				
@@ -276,7 +287,7 @@ public class BluetoothConnection extends NetworkConnection {
 			this.deviceSelectionDialog = null;
 		}
 		
-		public void run() { 
+		public void run() {
 			waitForBondedDevices();
 			waitForBluetoothDevice();
 			
@@ -310,8 +321,6 @@ public class BluetoothConnection extends NetworkConnection {
 				Set<BluetoothDevice> availableDevices = BLUETOOTH_ADAPTER.getBondedDevices();
 				
 				if(availableDevices.size() > 0) {
-					BLUETOOTH_ADAPTER.cancelDiscovery();
-					
 					showAvailableDevices(availableDevices);
 					
 					break;
