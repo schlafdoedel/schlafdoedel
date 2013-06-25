@@ -5,10 +5,21 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+import com.kg6.schlafdoedel.Configuration;
+import com.kg6.schlafdoedel.R;
 import com.kg6.schlafdoedel.event.Event;
+import com.kg6.schlafdoedel.event.EventScheduler;
+import com.kg6.schlafdoedel.network.BluetoothConnection;
+import com.kg6.schlafdoedel.speechrecognition.SpeechRecognition;
 
+import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Point;
+import android.util.Log;
 import android.view.WindowManager;
 
 public class Util {
@@ -151,5 +162,56 @@ public class Util {
 		String postfix = text.substring(text.length() - (maxTextLength / 2 + 3));
 		
 		return prefix + "..." + postfix;
+	}
+	
+	public static void AddDeviceNotificationEntry(Activity context) {
+		try {
+			Intent intent = new Intent(context, context.getClass());
+	    	
+	    	PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+	        
+	        Notification.Builder notificationBuilder = new Notification.Builder(context);
+	        notificationBuilder.setContentTitle("Schlafdödel: NSA uplink enabled");
+		    notificationBuilder.setSmallIcon(R.drawable.ic_launcher);
+		    notificationBuilder.setContentIntent(pendingIntent);
+		    notificationBuilder.setOngoing(true);
+		    
+		    Notification notification = notificationBuilder.build();
+		    NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE); 
+		    notificationManager.notify(Configuration.NOTIFICATION_ID, notification);
+		} catch (Exception e) {
+			Log.e("Util.java", "Unable to create device notification", e);
+		}
+	}
+	
+	public static void RemoveDeviceNotificationEntry(Activity context) {
+		try {
+			NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE); 
+		    notificationManager.cancel(Configuration.NOTIFICATION_ID);
+		} catch (Exception e) {
+			Log.e("Util.java", "Unable to remove device notification", e);
+		}
+	}
+	
+	public static void CleanupApplication(Activity context) {
+		context.stopService(new Intent(context, SpeechRecognition.class));
+    	
+    	Util.RemoveDeviceNotificationEntry(context);
+		
+		try {
+			BluetoothConnection bluetoothConnection = BluetoothConnection.CreateInstance(context);
+			
+			bluetoothConnection.cleanup();
+		} catch (Exception e) {
+			Log.e("ContextMenu.java", "Unable to cleanup the Bluetooth connection", e);
+		}
+		
+		try {
+			EventScheduler eventScheduler = EventScheduler.CreateInstance(context, null);
+			
+			eventScheduler.cleanup();
+		} catch (Exception e) {
+			Log.e("ContextMenu.java", "Unable to cleanup the EventScheduler", e);
+		}
 	}
 }

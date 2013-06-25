@@ -46,7 +46,6 @@ import com.kg6.schlafdoedel.speechrecognition.SpeechRecognition;
 
 @SuppressLint("UseSparseArrays")
 public class Overview extends Activity implements NetworkEvent, EventNotification {
-	
 	private BluetoothConnection bluetoothConnection;
 	private EventScheduler eventScheduler;
 
@@ -64,9 +63,10 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		setContentView(R.layout.activity_overview);
 
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		
+		Util.AddDeviceNotificationEntry(this);
 
 		this.eventDefinitionDialog = null;
-		
 		this.speechRecognitionDialog = new SpeechRecognitionDialog(this);
 		
 		this.availableStatusTabsHash = new HashMap<Integer, View>();
@@ -105,7 +105,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
     
     @Override
     protected void onDestroy() {
-    	stopService(new Intent(this, SpeechRecognition.class));
+    	Util.CleanupApplication(this);
     	
     	super.onDestroy();
     }
@@ -169,13 +169,10 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 
 	private void initializeEventScheduler() {
 		this.eventScheduler = EventScheduler.CreateInstance(this,(FrameLayout) findViewById(R.id.visualizationPanel));
-		this.eventScheduler.addEventNotificationListener(this);
 		
 		this.eventScheduler.setScreenBrightness(Configuration.WINDOW_MAX_BRIGHTNESS);
-
-		if (!this.eventScheduler.isAlive()) {
-			this.eventScheduler.start();
-		}
+		this.eventScheduler.addEventNotificationListener(this);
+		this.eventScheduler.restart();
 
 		if (this.recentActivitiesPanel != null) {
 			this.recentActivitiesPanel.setEventScheduler(this.eventScheduler);

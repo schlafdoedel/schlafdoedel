@@ -63,6 +63,20 @@ public class EventScheduler extends Thread {
 	
 	public void cleanup() {
 		this.enabled = false;
+		
+		eventScheduler = null;
+	}
+	
+	public void restart() {
+		this.enabled = true;
+		
+		try {
+			if(!isAlive()) {
+				start();
+			}
+		} catch (Exception e) {
+			Log.e("EventScheduler.java", "Unable to restart event scheduler", e);
+		}
 	}
 	
 	public void addEventNotificationListener(EventNotification listener) {
