@@ -123,6 +123,21 @@ public class InformationRequest {
 		requestingThread.start();
 	}
 	
+	public static void RequestSpeech(final Context context, final String requestKey, final String text) {
+		Thread requestingThread = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				ExecuteTextToSpeech(context, requestKey, text);
+			}
+			
+		});
+		
+		requestingThread.setName("Schlafdoedel - Speaking stuff");
+		requestingThread.start();
+	}
+	
+	
 	public static void ExecuteTextToSpeech(Context context, String requestKey, String text) {
 		TextToSpeechWrapper.Speak(context, requestKey, text);
 	}

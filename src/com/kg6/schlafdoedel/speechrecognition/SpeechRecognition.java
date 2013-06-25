@@ -81,6 +81,7 @@ public class SpeechRecognition extends Service {
 		}
 		
 		if(this.lastActivationTime > System.currentTimeMillis() - ACTIVATION_TIMEOUT) {
+			
 			String[] availableCommands = new String[] {
 				Configuration.SPEECH_RECOGNITION_COMMAND_WEATHER,
 				Configuration.SPEECH_RECOGNITION_COMMAND_NEWS,
@@ -166,8 +167,11 @@ public class SpeechRecognition extends Service {
 	
 					break;
 				case Configuration.SPEECH_RECOGNITION_STOP:
-					speechRecognition.speechRecognizer.stopListening();
-					speechRecognition.speechRecognizer.cancel();
+					
+					if (speechRecognition.isListening) {
+						speechRecognition.speechRecognizer.stopListening();
+						speechRecognition.speechRecognizer.cancel();
+					}
 					
 					speechRecognition.isListening = false;
 	
@@ -185,7 +189,8 @@ public class SpeechRecognition extends Service {
 	protected class SpeechRecognitionListener implements RecognitionListener {
 
 		@Override
-		public void onBeginningOfSpeech() {			
+		public void onBeginningOfSpeech() {
+			
 			if(isServiceEnabled && isCountDownEnabled) {
 				isCountDownEnabled = false;
 				
@@ -195,6 +200,7 @@ public class SpeechRecognition extends Service {
 
 		@Override
 		public void onError(int error) {
+			
 			if(!isServiceEnabled) {
 				return;
 			}
@@ -247,17 +253,19 @@ public class SpeechRecognition extends Service {
 
 		@Override
 		public void onReadyForSpeech(Bundle params) {
+			
 			if(isServiceEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
 				isCountDownEnabled = true;
 				
 				speechDeactivatedCountdown.start();
 				
-				audioManager.setStreamMute(AudioManager.STREAM_SYSTEM, false);
+				//audioManager.setStreamMute(AudioManager.STREAM_SYSTEM, false);
 			}
 		}
 
 		@Override
 		public void onResults(Bundle results) {
+			
 			if(!isServiceEnabled) {
 				return;
 			}
@@ -265,6 +273,7 @@ public class SpeechRecognition extends Service {
 			ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 
 			for (int i = 0; i < matches.size(); i++) {
+				
 				if(manageSpokenTerm(matches.get(i))) {
 					break;
 				}

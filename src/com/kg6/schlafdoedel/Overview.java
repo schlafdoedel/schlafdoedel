@@ -519,7 +519,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			
 			show();
 			
-			InformationRequest.ExecuteTextToSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED, TITLE);
+			InformationRequest.RequestSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED, TITLE);
 		}
 		
 		private void hideSpeechRecognitionSymbol() {

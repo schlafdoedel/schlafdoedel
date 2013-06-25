@@ -1,6 +1,5 @@
 package com.kg6.schlafdoedel.custom;
 
-import com.kg6.schlafdoedel.Overview;
 import com.kg6.schlafdoedel.R;
 
 import android.app.Activity;
@@ -8,7 +7,6 @@ import android.app.Dialog;
 import android.view.Gravity;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.LinearLayout.LayoutParams;
 
 public class StatisticDialog extends Dialog {
