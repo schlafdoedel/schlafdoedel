@@ -54,6 +54,7 @@ public class SpeechRecognition extends Service {
 		this.speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 		this.speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
 		this.speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
+		this.speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-GB");
 		
 		this.isListening = false;
 		this.isCountDownEnabled = false;
@@ -81,7 +82,6 @@ public class SpeechRecognition extends Service {
 		}
 		
 		if(this.lastActivationTime > System.currentTimeMillis() - ACTIVATION_TIMEOUT) {
-			
 			String[] availableCommands = new String[] {
 				Configuration.SPEECH_RECOGNITION_COMMAND_WEATHER,
 				Configuration.SPEECH_RECOGNITION_COMMAND_NEWS,
@@ -169,7 +169,7 @@ public class SpeechRecognition extends Service {
 					break;
 				case Configuration.SPEECH_RECOGNITION_STOP:
 					if(speechRecognition.isListening) {
-						speechRecognition.speechRecognizer.stopListening();
+//						speechRecognition.speechRecognizer.stopListening();
 						speechRecognition.speechRecognizer.cancel();
 					}
 					
@@ -190,17 +190,17 @@ public class SpeechRecognition extends Service {
 
 		@Override
 		public void onBeginningOfSpeech() {
-			
-			if(isServiceEnabled && isCountDownEnabled) {
-				isCountDownEnabled = false;
-				
-				speechDeactivatedCountdown.cancel();
-			}
+//			if(isServiceEnabled && isCountDownEnabled) {
+//				isCountDownEnabled = false;
+//				
+//				System.out.println("CANCEL 0");
+//				
+//				speechDeactivatedCountdown.cancel();
+//			}
 		}
 
 		@Override
 		public void onError(int error) {
-			
 			if(!isServiceEnabled) {
 				return;
 			}
@@ -264,7 +264,6 @@ public class SpeechRecognition extends Service {
 
 		@Override
 		public void onResults(Bundle results) {
-			
 			if(!isServiceEnabled) {
 				return;
 			}
@@ -278,7 +277,7 @@ public class SpeechRecognition extends Service {
 				}
 			}
 			
-			speechRecognizer.stopListening();
+//			speechRecognizer.stopListening();
 			speechRecognizer.cancel();
 		}
 		

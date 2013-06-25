@@ -265,11 +265,15 @@ public class BluetoothConnection extends NetworkConnection {
 					
 					this.clientListenerList.add(clientListener);
                 } catch (Exception e) { 
-                    Log.e("BluetoothConnection.java", "Unable to accept Bluetooth connection", e); 
+                    Log.e("BluetoothConnection.java", "Unable to accept Bluetooth connection", e);
+                    
+                    cleanup();
                 }
 			}
 			
-			cleanup();
+			if(!this.cleanedUp) {
+				cleanup();
+			}
 		}
 	}
 	
