@@ -30,6 +30,9 @@ public class Configuration {
 		"http://www.arryduniafotografi.com/wp-content/uploads/2011/08/Relaxing-Music-Instrumental-Piano-.mp3",
 	};
 	
+	public static final float EVENT_ALARM_VOLUME = 1f;
+	public static final float EVENT_RELAXING_VOLUME = 0.5f;
+	
 	public static final float WINDOW_MAX_BRIGHTNESS = 0.8f;
 	public static final float WINDOW_MIN_BRIGHTNESS = 0f;
 	

@@ -2,6 +2,10 @@ package com.kg6.schlafdoedel.event;
 
 import java.util.HashMap;
 
+import com.kg6.schlafdoedel.Configuration;
+
+import android.util.Log;
+
 public class EventSource {
 	public enum SourceType {
 		Music,
@@ -19,6 +23,14 @@ public class EventSource {
 		TYPE = type;
 		
 		this.attributes = new HashMap<String, Object>();
+		
+		initializeAttributes();
+	}
+	
+	private void initializeAttributes() {
+		if(TYPE == SourceType.Music) {
+			setAttribute("volume", Configuration.EVENT_ALARM_VOLUME);
+		}
 	}
 
 	public String getUrl() {
@@ -31,6 +43,18 @@ public class EventSource {
 	
 	public void setAttribute(String key, Object value) {
 		this.attributes.put(key, value);
+	}
+	
+	public float getFloatAttribute(String key) {
+		try {
+			if(this.attributes.containsKey(key)) {
+				return (Float) this.attributes.get(key);
+			}
+		} catch (Exception e) {
+			Log.e("EventSource.java", "Unable to parse event source float attributes", e);
+		}
+		
+		return 0;
 	}
 
 	@Override

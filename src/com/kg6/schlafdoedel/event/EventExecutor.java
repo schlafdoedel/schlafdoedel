@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Random;
 
 import com.kg6.schlafdoedel.custom.Util;
+import com.kg6.schlafdoedel.event.EventSource.SourceType;
 
 import android.app.Activity;
 import android.content.Context;
@@ -35,7 +36,6 @@ public class EventExecutor extends Thread {
 	private MediaPlayer mediaPlayer;
 	private EventAnimationPanel animationPanel;
 	private boolean enabled;
-	private float currentVolume;
 	
 	public EventExecutor(Activity context, EventScheduler eventScheduler, Event event, FrameLayout container) {
 		CONTEXT = context;
@@ -47,7 +47,6 @@ public class EventExecutor extends Thread {
 		this.animationPanel = null;
 		
 		this.enabled = true;
-		this.currentVolume = 0.0f;
 	}
 	
 	private void cleanup() {
@@ -94,10 +93,36 @@ public class EventExecutor extends Thread {
 		} catch (Exception e) {
 			Log.e("EventExecutor.java", "Unable to change the event media volume", e);
 		}
+		
+		EventSource eventSource = getEventSourceOfType(SourceType.Music);
+		
+		if(eventSource != null) {
+			eventSource.setAttribute("volume", volume);
+		}
 	}
 	
 	public float getVolume() {
-		return currentVolume;
+		EventSource eventSource = getEventSourceOfType(SourceType.Music);
+		
+		if(eventSource != null) {
+			return eventSource.getFloatAttribute("volume");
+		}
+
+		return 0;
+	}
+	
+	private EventSource getEventSourceOfType(SourceType sourceType) {
+		List<EventSource> sourceList = EVENT.getEventSourceList();
+		
+		for(int i = 0; i < sourceList.size(); i++) {
+			EventSource eventSource = sourceList.get(i);
+			
+			if(eventSource.getSourceType() == SourceType.Music) {
+				return eventSource;
+			}
+		}
+		
+		return null;
 	}
 	
 	public void run() {
@@ -189,18 +214,15 @@ public class EventExecutor extends Thread {
 		final String url = source.getUrl();
 		
 		try {
+			final float volume = source.getFloatAttribute("volume");
+			
 			this.mediaPlayer = new MediaPlayer();
 			this.mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+			this.mediaPlayer.setVolume(volume, volume);
 			this.mediaPlayer.setDataSource(url);
 			this.mediaPlayer.setLooping(true);
 			this.mediaPlayer.prepare();
 			this.mediaPlayer.start();
-			 
-			AudioManager am = (AudioManager) CONTEXT.getSystemService(Context.AUDIO_SERVICE);
-			int streamVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
-			int maxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-			
-			currentVolume = (float)streamVolume / (float)maxVolume;
 		} catch (Exception e) {
 			Log.e("EventExecutor.java", String.format("Unable to play audio from URL %s", url), e);
 			

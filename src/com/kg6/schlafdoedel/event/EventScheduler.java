@@ -181,6 +181,11 @@ public class EventScheduler extends Thread {
 	}
 	
 	public void playRelaxingMusic() {
+		EventSource imageSource = new EventSource(SourceType.Image, "http://wallpapersget.com/wallpapers/2012/02/nature-tree-beautiful-wallpaper-relaxing-scenic-1080x1920.jpg");
+		
+		EventSource musicSource = new EventSource(SourceType.Music, Configuration.EVENT_RELAXING_MUSIC_SOURCES[RANDOM.nextInt(Configuration.EVENT_RELAXING_MUSIC_SOURCES.length)]);
+		musicSource.setAttribute("volume", Configuration.EVENT_RELAXING_VOLUME);
+		
 		Calendar now = Calendar.getInstance();
 		
 		final int hour = now.get(Calendar.HOUR_OF_DAY);
@@ -189,9 +194,8 @@ public class EventScheduler extends Thread {
 		
 		Event event = new Event(Configuration.EVENT_RELAXING_TITLE, Util.GetMillisecondsOfDay(hour, minute, second), Util.GetMillisecondsOfDay(hour, minute + 30, second));
 		event.setRepetition(Util.GetCurrentDayOfWeek(), true);
-		
-		event.addEventSource(new EventSource(SourceType.Image, "http://wallpapersget.com/wallpapers/2012/02/nature-tree-beautiful-wallpaper-relaxing-scenic-1080x1920.jpg"));
-		event.addEventSource(new EventSource(SourceType.Music, Configuration.EVENT_RELAXING_MUSIC_SOURCES[RANDOM.nextInt(Configuration.EVENT_RELAXING_MUSIC_SOURCES.length)]));
+		event.addEventSource(imageSource);
+		event.addEventSource(musicSource);
 				
 		addEvent(event);
 	}
