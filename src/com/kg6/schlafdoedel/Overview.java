@@ -629,7 +629,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			public void run() {
 				
 				HttpClient client = new DefaultHttpClient();
-				HttpGet getCommand = new HttpGet("url"); 
+				HttpGet getCommand = new HttpGet("http://content.guardianapis.com/world?format=json&show-fields=trail-text&edition=UK&order-by=newest"); 
 				HttpResponse response;
 			    
 			    try {
@@ -645,14 +645,22 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			            String result= convertInputStreamToString(in);
 			            in.close();
 			            
-			            JSONObject newsData = new JSONObject(result);
+			            JSONArray newsData = new JSONObject(result).getJSONObject("response").getJSONArray("results");
 			            
+			            StringBuilder news = new StringBuilder();
+			            
+			            for (int i = 0; i < 3; i++) {
+			            	news.append(newsData.getJSONObject(i).getString("webTitle") + ". ");
+			            	news.append(newsData.getJSONObject(i).getJSONObject("fields").getString("trailText").replaceAll("<.*>", "") + ". ");
+			            }
+			            
+			            System.out.println(news);
 			            
 			            HashMap<String, String> ttsHash = new HashMap<String, String>();
 			            ttsHash.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_ALARM));
 			            ttsHash.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "NEWS");
 			            
-			            tts.speak("This are the news, motherfucker!", TextToSpeech.QUEUE_FLUSH, ttsHash);
+			            tts.speak(news.toString(), TextToSpeech.QUEUE_FLUSH, ttsHash);
 			        }
 			    } catch (Exception e) {
 			    	e.printStackTrace();
@@ -690,7 +698,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	@Override
 	public void onUtteranceCompleted(String utteranceID) {
 		
-		if (utteranceID.equals("WEATHER")) {
+		if (utteranceID.equals("WEATHER") || utteranceID.equals("NEWS")) {
 			eventScheduler.setEventAudioVolume(previousVolume);
 		}
 	}
