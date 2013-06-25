@@ -127,8 +127,6 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		}
 		
 		this.eventScheduler.addEvent(event);
-
-		this.eventScheduler.setSleepingPhase(Configuration.COMMAND_SLEEPING_PHASE_SHALLOW);
 	}
 
 	@Override
@@ -238,11 +236,11 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			Button tabButton = (Button) findViewById(tabButtonId);
 			
 			if(tabButtonId == buttonId) {
-				tabButton.setBackgroundColor(Color.GRAY);
+				tabButton.setBackgroundColor(Color.argb(255, 255, 255, 255));
 				
 				statusPanelContainer.addView(this.availableStatusTabsHash.get(tabButtonId), new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 			} else {
-				tabButton.setBackgroundColor(Color.WHITE);
+				tabButton.setBackgroundColor(Color.argb(255, 180, 180, 180));
 			}
 		}
 	}
@@ -393,7 +391,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 				this.eventScheduler.setScreenBrightness(Configuration.WINDOW_MAX_BRIGHTNESS);
 			} else {
 				this.eventScheduler.setScreenBrightness(Configuration.WINDOW_MIN_BRIGHTNESS);
-				this.eventScheduler.dismissAllEvents();
+				this.eventScheduler.dismissAllRelaxingEvents();
 			}
 		}
 	}

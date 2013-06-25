@@ -68,6 +68,8 @@ public class BluetoothConnection extends NetworkConnection {
 		
 		try {
 			if(this.server != null) {
+				this.server.cleanup();
+				
 				this.server.interrupt();
 				this.server = null;
 			}
@@ -77,6 +79,8 @@ public class BluetoothConnection extends NetworkConnection {
 		
 		try {
 			if(this.client != null) {
+				this.client.cleanup();
+				
 				this.client.interrupt();
 				this.client = null;
 			}
@@ -130,8 +134,13 @@ public class BluetoothConnection extends NetworkConnection {
 	}
 	
 	public void disconnectFromServer() {
+		if(this.server != null) {
+			this.server.cleanup();
+			this.server = null;
+		}
+		
 		if(this.client != null) {
-			this.client.disconnectFromServer();
+			this.client.cleanup();
 			this.client = null;
 		}
 	}
@@ -163,7 +172,7 @@ public class BluetoothConnection extends NetworkConnection {
 		try {
 			bluetoothAdapter.cancelDiscovery();
 		} catch (Exception e) {
-			Log.e("BluetoothConnection.java", "Unable to cancel bluetooth discovery", e);
+			Log.e("BluetoothConnection.java", "Unable to cancel Bluetooth discovery", e);
 		}
 		
 		return bluetoothAdapter;
@@ -196,8 +205,40 @@ public class BluetoothConnection extends NetworkConnection {
 		
 		private BluetoothServerSocket serverSocket; 
 		
+		private boolean cleanedUp;
+		
+		private List<BluetoothClientListener> clientListenerList;
+		
 		public BluetoothServer(BluetoothAdapter bluetoothAdapter) {
 			BLUETOOTH_ADAPTER = bluetoothAdapter;
+			
+			this.cleanedUp = false;
+			
+			this.clientListenerList = new ArrayList<BluetoothClientListener>();
+		}
+		
+		public void cleanup() {
+			this.cleanedUp = true;
+			
+			try {
+				if(this.serverSocket != null) {
+					this.serverSocket.close();
+				}
+			} catch (Exception e) {
+				Log.e("BluetoothConnection.java", "Unable to close server socket", e); 
+			}
+			
+			for(int i = 0; i < this.clientListenerList.size(); i++) {
+				try {
+					BluetoothClientListener clientListener = this.clientListenerList.get(i);
+							
+					if(clientListener != null) {
+						clientListener.cleanup();
+					}
+				} catch (Exception e) {
+					Log.e("BluetoothConnection.java", "Unable to close server socket", e); 
+				}
+			}
 		}
 		
 		public void run() { 
@@ -206,26 +247,29 @@ public class BluetoothConnection extends NetworkConnection {
 				
 				this.serverSocket = BLUETOOTH_ADAPTER.listenUsingInsecureRfcommWithServiceRecord("Schlafdoedel overview", uuid); 
 			} catch (Exception e) {
-				Log.e("BluetoothConnection.java", "Unable to start the server socket", e);
+				Log.e("BluetoothConnection.java", "Unable to aquire the server socket", e);
 				
-				fireOnConnectionError("Unable to start the server socket");
+				fireOnConnectionError("Unable to aquire the server socket");
 				
 				return;
 			}
 			
 			fireOnStartListening();
 			
-			while(isEnabled()) {
+			while(isEnabled() && !this.cleanedUp) {
 				try { 
 					BluetoothSocket socket = this.serverSocket.accept();
 					
-					BluetoothClientListener listener = new BluetoothClientListener(socket);
-					listener.start();
+					BluetoothClientListener clientListener = new BluetoothClientListener(socket);
+					clientListener.start();
+					
+					this.clientListenerList.add(clientListener);
                 } catch (Exception e) { 
                     Log.e("BluetoothConnection.java", "Unable to accept Bluetooth connection", e); 
-                    break; 
                 }
 			}
+			
+			cleanup();
 		}
 	}
 	
@@ -236,12 +280,22 @@ public class BluetoothConnection extends NetworkConnection {
 			CLIENT_SOCKET = clientSocket;
 		}
 		
+		public void cleanup() {
+			try {
+				if(CLIENT_SOCKET != null) {
+					CLIENT_SOCKET.close();
+				}
+			} catch (IOException e) {
+				
+			}
+		}
+		
 		public void run() {
+			fireOnConnectionEstablished();
+			
 			BufferedReader reader = null;
 
 			try {
-				fireOnConnectionEstablished();
-				
 				reader = new BufferedReader(new InputStreamReader(CLIENT_SOCKET.getInputStream()));
 				
 				while(isEnabled() && CLIENT_SOCKET.isConnected()) {
@@ -265,6 +319,8 @@ public class BluetoothConnection extends NetworkConnection {
 						
 					}
 				}
+				
+				cleanup();
 			}
 			
 			fireOnConnectionClosed();
@@ -287,6 +343,16 @@ public class BluetoothConnection extends NetworkConnection {
 			this.deviceSelectionDialog = null;
 		}
 		
+		public void cleanup() {
+			try {
+				if(isConnected() && this.clientSocket != null) {
+					this.clientSocket.close();
+				}
+			} catch (Exception e) {
+				Log.e("BluetoothConnection.java", "Unable to disconnected from server", e);
+			}
+		}
+		
 		public void run() {
 			waitForBondedDevices();
 			waitForBluetoothDevice();
@@ -306,9 +372,11 @@ public class BluetoothConnection extends NetworkConnection {
 					}
 				}
 			} catch (IOException e) {
-				Log.e("BluetoothConnection.java", "Unable to create bluetooth socket", e);
+				Log.e("BluetoothConnection.java", "Unable to create Bluetooth socket", e);
 				
 				fireOnConnectionError("Unable to connect to sleeping phase sensor");
+			} finally {
+				cleanup();
 			}
 			
 			fireOnConnectionClosed();
@@ -336,20 +404,6 @@ public class BluetoothConnection extends NetworkConnection {
 				} catch (InterruptedException e) {
 					
 				}
-			}
-		}
-		
-		public void disconnectFromServer() {
-			if(!isConnected()) {
-				return;
-			}
-			
-			try {
-				if(this.clientSocket != null) {
-					this.clientSocket.close();
-				}
-			} catch (Exception e) {
-				Log.e("BluetoothConnection.java", "Unable to disconnected from server", e);
 			}
 		}
 		

@@ -187,13 +187,34 @@ public class EventScheduler extends Thread {
 		final int minute = now.get(Calendar.MINUTE);
 		final int second = now.get(Calendar.SECOND) + 2;
 		
-		Event event = new Event("Have a nice sleep!", Util.GetMillisecondsOfDay(hour, minute, second), Util.GetMillisecondsOfDay(hour, minute + 30, second));
+		Event event = new Event(Configuration.EVENT_RELAXING_TITLE, Util.GetMillisecondsOfDay(hour, minute, second), Util.GetMillisecondsOfDay(hour, minute + 30, second));
 		event.setRepetition(Util.GetCurrentDayOfWeek(), true);
 		
 		event.addEventSource(new EventSource(SourceType.Image, "http://wallpapersget.com/wallpapers/2012/02/nature-tree-beautiful-wallpaper-relaxing-scenic-1080x1920.jpg"));
 		event.addEventSource(new EventSource(SourceType.Music, Configuration.EVENT_RELAXING_MUSIC_SOURCES[RANDOM.nextInt(Configuration.EVENT_RELAXING_MUSIC_SOURCES.length)]));
 				
 		addEvent(event);
+	}
+	
+	public void dismissAllRelaxingEvents() {
+		CONTEXT.runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					for(int i = 0; i < eventExecutorList.size(); i++) {
+						EventExecutor eventExecutor = eventExecutorList.get(i);
+						
+						if(eventExecutor.getEvent().getTitle().compareTo(Configuration.EVENT_RELAXING_TITLE) == 0) {
+							dismissEvent(eventExecutor.getEvent());
+						}
+					}
+				} catch (Exception e) {
+					Log.e("EventScheduler.java", "Unable to dismiss all executed events", e);
+				}
+			}
+			
+		});
 	}
 	
 	public void run() {
@@ -260,17 +281,10 @@ public class EventScheduler extends Thread {
 			@Override
 			public void run() {
 				try {
-					float nextScreenBrightness = brightness;
-					
-					if(eventExecutorList.size() > 0) {
-						nextScreenBrightness = 1;
-					}
-					
-					//Modify the brightness
 					Window myWindow = CONTEXT.getWindow();
 	
 					WindowManager.LayoutParams winParams = myWindow.getAttributes();
-					winParams.screenBrightness = nextScreenBrightness;
+					winParams.screenBrightness = brightness;
 	
 					myWindow.setAttributes(winParams);
 				} catch (Exception e) {
@@ -278,25 +292,6 @@ public class EventScheduler extends Thread {
 				}
 			}
 
-		});
-	}
-	
-	public void dismissAllEvents() {
-		CONTEXT.runOnUiThread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					for(int i = 0; i < eventExecutorList.size(); i++) {
-						EventExecutor eventExecutor = eventExecutorList.get(i);
-						
-						dismissEvent(eventExecutor.getEvent());
-					}
-				} catch (Exception e) {
-					Log.e("EventScheduler.java", "Unable to dismiss all executed events", e);
-				}
-			}
-			
 		});
 	}
 	
@@ -323,6 +318,9 @@ public class EventScheduler extends Thread {
 				executor.dismiss();
 			}
 		}
+		
+		//Set the screen brightness
+		setScreenBrightness(Configuration.WINDOW_MAX_BRIGHTNESS);
 		
 		//Start the event
 		EventExecutor executor = new EventExecutor(CONTEXT, this, event, CONTAINER);
