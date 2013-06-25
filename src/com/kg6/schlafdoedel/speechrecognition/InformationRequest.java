@@ -106,8 +106,13 @@ public class InformationRequest implements OnInitListener {
 				
 				try {
 					JSONArray newsData = new JSONObject(response).getJSONObject("response").getJSONArray("results");
+		            int numberOfNews = 3;
 		            
-		            for (int i = 0; i < 3; i++) {
+		            if (newsData.length() < 3) {
+		            	numberOfNews = newsData.length();
+		            }
+					
+		            for (int i = 0; i < numberOfNews; i++) {
 		            	newsTextBuilder.append(newsData.getJSONObject(i).getString("webTitle") + ". ");
 		            	newsTextBuilder.append(newsData.getJSONObject(i).getJSONObject("fields").getString("trailText").replaceAll("<.*>", "") + ". ");
 		            }
