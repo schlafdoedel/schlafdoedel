@@ -31,6 +31,7 @@ import com.kg6.schlafdoedel.custom.DigitalClock;
 import com.kg6.schlafdoedel.custom.EventDefinitionDialog;
 import com.kg6.schlafdoedel.custom.EventListPanel;
 import com.kg6.schlafdoedel.custom.RecentActivitiesPanel;
+import com.kg6.schlafdoedel.custom.StatisticDialog;
 import com.kg6.schlafdoedel.custom.Util;
 import com.kg6.schlafdoedel.event.Event;
 import com.kg6.schlafdoedel.event.EventNotification;
@@ -291,9 +292,16 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	}
 	
 	private void addStatisticButtonListener() {
-		final ImageButton showStatisticButton = (ImageButton) findViewById(R.id.addEventButton);
+		final ImageButton showStatisticButton = (ImageButton) findViewById(R.id.showStatisticButton);
 
-		
+		showStatisticButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				StatisticDialog statisticDialog = new StatisticDialog(Overview.this);
+				statisticDialog.showStatistic();
+			}
+		});
 	}
 
 	@Override
