@@ -74,6 +74,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		addOptionsButtonListener();
 		addBluetoothButtonListener();
 		addEventButtonListener();
+		addStatisticButtonListener();
 		addStatusPanel();
 
 		initializeBluetoothConnection();
@@ -84,7 +85,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		// TODO
 		createTestEvents();
 	}
-	
+
 	@Override
     protected void onResume() {
         IntentFilter filter = new IntentFilter();
@@ -287,6 +288,12 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 				eventDefinitionDialog.show();
 			}
 		});
+	}
+	
+	private void addStatisticButtonListener() {
+		final ImageButton showStatisticButton = (ImageButton) findViewById(R.id.addEventButton);
+
+		
 	}
 
 	@Override
