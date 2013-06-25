@@ -27,19 +27,19 @@
             android:layout_height="match_parent" >
             
             <ImageButton
-                android:id="@+id/showStatisticButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@drawable/button_statistics"
-                android:layout_alignParentRight="true"
-	            android:layout_marginRight="150dp" />
-            
-            <ImageButton
 	            android:id="@+id/addEventButton"
 	            android:layout_width="48dp"
 	            android:layout_height="48dp"
 	            android:background="@drawable/button_add_event"
 	            android:layout_alignParentRight="true"
+	            android:layout_marginRight="150dp" />
+            
+            <ImageButton
+                android:id="@+id/showStatisticButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/button_statistics"
+                android:layout_alignParentRight="true"
 	            android:layout_marginRight="100dp" />
             
             <ImageButton
@@ -96,7 +96,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="#FFFFFF" >
+        android:background="#B4B4B4" >
 
 	        <Button
 	            android:id="@+id/recentActivitiesButton"
