@@ -24,7 +24,7 @@ import android.util.Log;
 import com.kg6.schlafdoedel.Configuration;
 import com.kg6.schlafdoedel.event.EventScheduler;
 
-public class InformationRequest {
+public class InformationRequest implements OnInitListener {
 
 	public static void RequestWeatherInformation(final Activity context) {
 		Thread requestingThread = new Thread(new Runnable() {
@@ -87,7 +87,7 @@ public class InformationRequest {
 			
 		});
 		
-		requestingThread.setName("Schlafdödel - Request weather information thread");
+		requestingThread.setName("Schlafdoedel - Request weather information thread");
 		requestingThread.start();
 	}
 	
@@ -96,18 +96,32 @@ public class InformationRequest {
 
 			@Override
 			public void run() {
-				String response = ExecuteRequest(""); //TODO
+				String response = ExecuteRequest(Configuration.TTS_REQUEST_NEWS_URL);
 				
 				if(response == null) {
 					return;
 				}
 				
-				//TODO
+				StringBuilder newsTextBuilder = new StringBuilder();
+				
+				try {
+					JSONArray newsData = new JSONObject(response).getJSONObject("response").getJSONArray("results");
+		            
+		            for (int i = 0; i < 3; i++) {
+		            	newsTextBuilder.append(newsData.getJSONObject(i).getString("webTitle") + ". ");
+		            	newsTextBuilder.append(newsData.getJSONObject(i).getJSONObject("fields").getString("trailText").replaceAll("<.*>", "") + ". ");
+		            }
+		            
+				} catch (Exception e) {
+					Log.e("InformationRequest.java", "Unable to parse weather JSON response", e);
+				}
+				
+				ExecuteTextToSpeech(context, "NEWS", newsTextBuilder.toString());
 			}
 			
 		});
 		
-		requestingThread.setName("Schlafdödel - Request news information thread");
+		requestingThread.setName("Schlafdoedel - Request news information thread");
 		requestingThread.start();
 	}
 	
@@ -219,5 +233,11 @@ public class InformationRequest {
 	    }
 	    
 	    return null;
+	}
+
+	@Override
+	public void onInit(int arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 }
