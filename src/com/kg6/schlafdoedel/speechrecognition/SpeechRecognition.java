@@ -238,9 +238,10 @@ public class SpeechRecognition extends Service {
 			}
 			
 			try {
+				MESSAGE_SERVER.send(Message.obtain(null, Configuration.SPEECH_RECOGNITION_STOP));
 				MESSAGE_SERVER.send(Message.obtain(null, Configuration.SPEECH_RECOGNITION_START));
 			} catch (RemoteException e) {
-
+				Log.e("SpeechRecognition.java", "Unable to send speech recognition message", e);
 			}
 		}
 
