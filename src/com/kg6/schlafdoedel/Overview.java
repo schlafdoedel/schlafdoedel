@@ -14,6 +14,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
@@ -506,7 +507,8 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 						Thread weather = new WeatherRequest();
 						weather.start();
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_NEWS) == 0) {
-						//TODO
+						Thread news = new NewsRequest();
+						news.start();
 					} else {
 						Toast.makeText(Overview.this, String.format("Command %s can not be handled", command), Toast.LENGTH_SHORT).show();
 					}
@@ -561,16 +563,96 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			            JSONObject weatherData = new JSONObject(result);
 			            JSONObject data = weatherData.getJSONObject("data");
 			            JSONObject currentCondition = data.getJSONArray("current_condition").getJSONObject(0);
+			            JSONArray weatherForNextDays = data.getJSONArray("weather");
 			            
-			            String currentConditionText = "The current condition is " +
+			            StringBuilder currentConditionText = new StringBuilder();
+			            
+			            currentConditionText.append("The current condition is " +
 			            		currentCondition.getJSONArray("weatherDesc").getJSONObject(0).getString("value").toLowerCase() +
-			            		" at " + currentCondition.getString("temp_C") + " degrees celcius, dude";
+			            		" at " + currentCondition.getString("temp_C") + " degrees celcius. ");
+			            
+			            if (weatherForNextDays.length() > 0) {
+
+			            	currentConditionText.append("The current forecast for tomorrow is " +
+			            			weatherForNextDays.getJSONObject(0).getJSONArray("weatherDesc").getJSONObject(0).getString("value").toLowerCase() +
+			            			" at a minimum of " + weatherForNextDays.getJSONObject(0).getString("tempMinC") + " degrees and a maximum of " +
+			            			weatherForNextDays.getJSONObject(0).getString("tempMaxC") + " degrees celcius. ");
+			            	
+			            	if (weatherForNextDays.length() > 1) {
+			            		currentConditionText.append("And finally, the current forecast for the day after tomorrow is " +
+				            			weatherForNextDays.getJSONObject(1).getJSONArray("weatherDesc").getJSONObject(0).getString("value").toLowerCase() +
+				            			" at a minimum of " + weatherForNextDays.getJSONObject(1).getString("tempMinC") + " degrees and a maximum of " +
+				            			weatherForNextDays.getJSONObject(1).getString("tempMaxC") + " degrees celcius. ");
+				            }
+				            else {
+				            	currentConditionText.append("Sorry dude, the weather report for the following day is not available. ");
+				            }
+			            }
+			            else {
+			            	currentConditionText.append("Sorry dude, the weather report for the following two days is not available. ");
+			            }
+			            
+			            currentConditionText.append("Enjoy your day, dude.");
 			            
 			            HashMap<String, String> ttsHash = new HashMap<String, String>();
-			            ttsHash.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_MUSIC));
+			            ttsHash.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_ALARM));
 			            ttsHash.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "WEATHER");
 			            
-			            tts.speak(currentConditionText, TextToSpeech.QUEUE_FLUSH, ttsHash);
+			            tts.speak(currentConditionText.toString(), TextToSpeech.QUEUE_FLUSH, ttsHash);
+			        }
+			    } catch (Exception e) {
+			    	e.printStackTrace();
+			    }
+			}
+			
+			private String convertInputStreamToString(InputStream in) {
+				
+				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+			    StringBuilder finalString = new StringBuilder();
+			    String currentLine = null;
+			    
+			    try {
+			        while ((currentLine = reader.readLine()) != null) {
+			        	finalString.append(currentLine + "\n");
+			        }
+			    } catch (IOException e) {
+			        e.printStackTrace();
+			    }
+			    
+			    return finalString.toString();
+			}
+		}
+		
+		private class NewsRequest extends Thread {
+			
+			@Override
+			public void run() {
+				
+				HttpClient client = new DefaultHttpClient();
+				HttpGet getCommand = new HttpGet("url"); 
+				HttpResponse response;
+			    
+			    try {
+			        response = client.execute(getCommand);
+			        HttpEntity entity = response.getEntity();
+			        
+			        Log.i("HTTPResponseStatus",response.getStatusLine().toString());
+			        
+			        if (entity != null) {
+			        	
+			        	InputStream in = entity.getContent();
+			            
+			            String result= convertInputStreamToString(in);
+			            in.close();
+			            
+			            JSONObject newsData = new JSONObject(result);
+			            
+			            
+			            HashMap<String, String> ttsHash = new HashMap<String, String>();
+			            ttsHash.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_ALARM));
+			            ttsHash.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "NEWS");
+			            
+			            tts.speak("This are the news, motherfucker!", TextToSpeech.QUEUE_FLUSH, ttsHash);
 			        }
 			    } catch (Exception e) {
 			    	e.printStackTrace();
