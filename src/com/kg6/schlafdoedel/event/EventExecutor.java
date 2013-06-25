@@ -109,13 +109,21 @@ public class EventExecutor extends Thread {
 			for(EventSource source : eventSourceList) {
 				switch(source.getSourceType()) {
 					case Image:
-						loadEventBitmap(source);					
+						loadEventBitmap(source);
 						break;
 					case Music:
 						startPlayback(source);
 						break;
 					default:
 						return;
+				}
+			}
+			
+			while(this.enabled && this.animationPanel == null) {
+				try {
+					Thread.sleep(100);
+				} catch (Exception e) {
+					
 				}
 			}
 			

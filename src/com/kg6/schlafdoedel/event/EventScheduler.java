@@ -16,6 +16,10 @@ import com.kg6.schlafdoedel.custom.Util;
 public class EventScheduler extends Thread {
 	private static EventScheduler eventScheduler;
 	
+	public static EventScheduler CreateInstance() {
+		return eventScheduler;
+	}
+	
 	public static EventScheduler CreateInstance(Activity context, FrameLayout container) {
 		if(eventScheduler == null) {
 			eventScheduler = new EventScheduler(context, container);
@@ -109,7 +113,6 @@ public class EventScheduler extends Thread {
 	}
 	
 	public float getEventAudioVolume() {
-		
 		if (this.eventExecutorList.size() > 0) {
 			return this.eventExecutorList.get(0).getVolume();
 		}

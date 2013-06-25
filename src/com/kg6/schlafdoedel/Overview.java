@@ -1,21 +1,8 @@
 package com.kg6.schlafdoedel;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Set;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -25,12 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
-import android.media.AudioManager;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.TextToSpeech.OnInitListener;
-import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -59,10 +41,11 @@ import com.kg6.schlafdoedel.network.BluetoothConnection;
 import com.kg6.schlafdoedel.network.NetworkConnection;
 import com.kg6.schlafdoedel.network.NetworkConnection.ConnectionType;
 import com.kg6.schlafdoedel.network.NetworkEvent;
+import com.kg6.schlafdoedel.speechrecognition.InformationRequest;
 import com.kg6.schlafdoedel.speechrecognition.SpeechRecognition;
 
 @SuppressLint("UseSparseArrays")
-public class Overview extends Activity implements NetworkEvent, EventNotification, OnInitListener, OnUtteranceCompletedListener {
+public class Overview extends Activity implements NetworkEvent, EventNotification {
 	
 	private BluetoothConnection bluetoothConnection;
 	private EventScheduler eventScheduler;
@@ -72,9 +55,6 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	private EventListPanel eventListPanel;
 	
 	private SpeechRecognitionDialog speechRecognitionDialog;
-	private TextToSpeech tts;
-	
-	private float previousVolume;
 	
 	private HashMap<Integer, View> availableStatusTabsHash;
 	
@@ -90,10 +70,6 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		this.speechRecognitionDialog = new SpeechRecognitionDialog(this);
 		
 		this.availableStatusTabsHash = new HashMap<Integer, View>();
-		
-		this.tts = new TextToSpeech(this, this);
-		
-		this.previousVolume = 0;
 
 		addOptionsButtonListener();
 		addBluetoothButtonListener();
@@ -131,10 +107,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
     protected void onDestroy() {
     	stopService(new Intent(this, SpeechRecognition.class));
     	
-    	if (tts != null) {
-            tts.stop();
-            tts.shutdown();
-        }
+    	super.onDestroy();
     }
 
 	private void createTestEvents() {
@@ -480,7 +453,11 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		}
 		
 		private void initializeControls() {
-			setTitle("How can I help you?");
+			final String title = "How can I help you, master?";
+			
+			InformationRequest.ExecuteTextToSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED, title);
+			
+			setTitle(title);
 			
 			this.contentContainerLayout = new LinearLayout(getContext());
 			this.contentContainerLayout.setOrientation(LinearLayout.VERTICAL);
@@ -499,16 +476,12 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 					
 					if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED) == 0) {
 						showSpeechRecognitionSymbol();
-						previousVolume = eventScheduler.getEventAudioVolume();
-						eventScheduler.setEventAudioVolume(0);
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_DEACTIVATED) == 0) {
 						hideSpeechRecognitionSymbol();
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_WEATHER) == 0) {
-						Thread weather = new WeatherRequest();
-						weather.start();
+						InformationRequest.RequestWeatherInformation(Overview.this);
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_NEWS) == 0) {
-						Thread news = new NewsRequest();
-						news.start();
+						InformationRequest.RequestNewsInformation(Overview.this);
 					} else {
 						Toast.makeText(Overview.this, String.format("Command %s can not be handled", command), Toast.LENGTH_SHORT).show();
 					}

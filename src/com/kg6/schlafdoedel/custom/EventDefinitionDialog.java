@@ -553,8 +553,13 @@ public class EventDefinitionDialog extends Dialog {
 			
 			@Override
 			public void onClick(View v) {
-				final long startTime = calendarEvent.getStartTime() - Configuration.EVENT_AUTODEFINITION_START_OFFSET;
-				final long endTime = startTime + Configuration.EVENT_AUTODEFINITION_END_OFFSET;
+				long startTime = calendarEvent.getStartTime() - Configuration.EVENT_AUTODEFINITION_START_OFFSET;
+				
+				while(startTime - Util.GetDayOffset() > 0) {
+					startTime -= Util.GetDayOffset();
+				}
+				
+				long endTime = startTime + Configuration.EVENT_AUTODEFINITION_END_DURATION;
 				
 				final int currentDayOfWeek = Util.GetCurrentDayOfWeek();
 				
