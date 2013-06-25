@@ -2,8 +2,6 @@ package com.kg6.schlafdoedel.speechrecognition;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Locale;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -15,14 +13,9 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Context;
-import android.media.AudioManager;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.TextToSpeech.OnInitListener;
-import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.util.Log;
 
 import com.kg6.schlafdoedel.Configuration;
-import com.kg6.schlafdoedel.event.EventScheduler;
 
 public class InformationRequest implements OnInitListener {
 
@@ -125,74 +118,8 @@ public class InformationRequest implements OnInitListener {
 		requestingThread.start();
 	}
 	
-	@SuppressWarnings("deprecation")
-	public static void ExecuteTextToSpeech(final Context context, final String requestKey, final String text) {
-		final float previousEventAudioVolume = GetMusicVolume();
-		
-		try {
-			ChangeMusicVolume(0);
-			
-	        final TextToSpeech tts = new TextToSpeech(context, new OnInitListener() {
-				
-				@Override
-				public void onInit(int status) {
-					if (status != TextToSpeech.SUCCESS) {
-						Log.v("InformationRequest.java", "Unable to initialize text to speech");
-					}
-				}
-				
-			});
-	        
-	        tts.setOnUtteranceCompletedListener(new OnUtteranceCompletedListener() {
-				
-				@Override
-				public void onUtteranceCompleted(String utteranceId) {
-					if(utteranceId.compareTo(requestKey) != 0) {
-						return;
-					}
-					
-					tts.stop();
-					tts.shutdown();
-					
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e) {
-						
-					}
-			        
-			        ChangeMusicVolume(previousEventAudioVolume);
-				}
-			});
-	        
-	        HashMap<String, String> ttsHash = new HashMap<String, String>();
-	        ttsHash.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_ALARM));
-	        ttsHash.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, requestKey);
-	        
-	        tts.setLanguage(Locale.UK);
-	        tts.speak(text, TextToSpeech.QUEUE_FLUSH, ttsHash);
-		} catch (Exception e) {
-			Log.e("InformationRequest.java", "Unable to execute text to speech", e);
-			
-			ChangeMusicVolume(previousEventAudioVolume);
-		}
-	}
-	
-	private static void ChangeMusicVolume(float volume) {
-		EventScheduler scheduler = EventScheduler.CreateInstance();
-        
-        if(scheduler != null) {
-        	scheduler.setEventAudioVolume(volume);
-        }
-	}
-	
-	private static float GetMusicVolume() {
-		EventScheduler scheduler = EventScheduler.CreateInstance();
-        
-        if(scheduler != null) {
-        	return scheduler.getEventAudioVolume();
-        }
-        
-        return 0;
+	public static void ExecuteTextToSpeech(Context context, String requestKey, String text) {
+		TextToSpeechWrapper.Speak(context, requestKey, text);
 	}
 	
 	private static String ExecuteRequest(String url) {
