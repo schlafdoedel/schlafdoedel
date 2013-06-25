@@ -1,21 +1,8 @@
 package com.kg6.schlafdoedel;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Set;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -25,12 +12,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
-import android.media.AudioManager;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
-import android.speech.tts.TextToSpeech.OnInitListener;
-import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -59,10 +42,11 @@ import com.kg6.schlafdoedel.network.BluetoothConnection;
 import com.kg6.schlafdoedel.network.NetworkConnection;
 import com.kg6.schlafdoedel.network.NetworkConnection.ConnectionType;
 import com.kg6.schlafdoedel.network.NetworkEvent;
+import com.kg6.schlafdoedel.speechrecognition.InformationRequest;
 import com.kg6.schlafdoedel.speechrecognition.SpeechRecognition;
 
 @SuppressLint("UseSparseArrays")
-public class Overview extends Activity implements NetworkEvent, EventNotification, OnInitListener, OnUtteranceCompletedListener {
+public class Overview extends Activity implements NetworkEvent, EventNotification {
 	
 	private BluetoothConnection bluetoothConnection;
 	private EventScheduler eventScheduler;
@@ -73,8 +57,6 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	
 	private SpeechRecognitionDialog speechRecognitionDialog;
 	private TextToSpeech tts;
-	
-	private float previousVolume;
 	
 	private HashMap<Integer, View> availableStatusTabsHash;
 	
@@ -90,10 +72,6 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		this.speechRecognitionDialog = new SpeechRecognitionDialog(this);
 		
 		this.availableStatusTabsHash = new HashMap<Integer, View>();
-		
-		this.tts = new TextToSpeech(this, this);
-		
-		this.previousVolume = 0;
 
 		addOptionsButtonListener();
 		addBluetoothButtonListener();
@@ -480,7 +458,11 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		}
 		
 		private void initializeControls() {
-			setTitle("How can I help you?");
+			final String title = "How can I help you, master?";
+			
+			InformationRequest.ExecuteTextToSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED, title);
+			
+			setTitle(title);
 			
 			this.contentContainerLayout = new LinearLayout(getContext());
 			this.contentContainerLayout.setOrientation(LinearLayout.VERTICAL);
@@ -499,16 +481,12 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 					
 					if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED) == 0) {
 						showSpeechRecognitionSymbol();
-						previousVolume = eventScheduler.getEventAudioVolume();
-						eventScheduler.setEventAudioVolume(0);
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_DEACTIVATED) == 0) {
 						hideSpeechRecognitionSymbol();
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_WEATHER) == 0) {
-						Thread weather = new WeatherRequest();
-						weather.start();
+						InformationRequest.RequestWeatherInformation(Overview.this);
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_NEWS) == 0) {
-						Thread news = new NewsRequest();
-						news.start();
+						InformationRequest.RequestNewsInformation(Overview.this);
 					} else {
 						Toast.makeText(Overview.this, String.format("Command %s can not be handled", command), Toast.LENGTH_SHORT).show();
 					}
@@ -536,162 +514,6 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			this.contentContainerLayout.removeAllViews();
 			
 			dismiss();
-		}
-		
-		private class WeatherRequest extends Thread {
-			
-			@Override
-			public void run() {
-				
-				HttpClient client = new DefaultHttpClient();
-				HttpGet getCommand = new HttpGet(Configuration.WEATHER_API_URL_1 + "Linz" + Configuration.WEATHER_API_URL_2); 
-				HttpResponse response;
-			    
-			    try {
-			        response = client.execute(getCommand);
-			        HttpEntity entity = response.getEntity();
-			        
-			        Log.i("HTTPResponseStatus",response.getStatusLine().toString());
-			        
-			        if (entity != null) {
-			        	
-			        	InputStream in = entity.getContent();
-			            
-			            String result= convertInputStreamToString(in);
-			            in.close();
-			            
-			            JSONObject weatherData = new JSONObject(result);
-			            JSONObject data = weatherData.getJSONObject("data");
-			            JSONObject currentCondition = data.getJSONArray("current_condition").getJSONObject(0);
-			            JSONArray weatherForNextDays = data.getJSONArray("weather");
-			            
-			            StringBuilder currentConditionText = new StringBuilder();
-			            
-			            currentConditionText.append("The current condition is " +
-			            		currentCondition.getJSONArray("weatherDesc").getJSONObject(0).getString("value").toLowerCase() +
-			            		" at " + currentCondition.getString("temp_C") + " degrees celcius. ");
-			            
-			            if (weatherForNextDays.length() > 0) {
-
-			            	currentConditionText.append("The current forecast for tomorrow is " +
-			            			weatherForNextDays.getJSONObject(0).getJSONArray("weatherDesc").getJSONObject(0).getString("value").toLowerCase() +
-			            			" at a minimum of " + weatherForNextDays.getJSONObject(0).getString("tempMinC") + " degrees and a maximum of " +
-			            			weatherForNextDays.getJSONObject(0).getString("tempMaxC") + " degrees celcius. ");
-			            	
-			            	if (weatherForNextDays.length() > 1) {
-			            		currentConditionText.append("And finally, the current forecast for the day after tomorrow is " +
-				            			weatherForNextDays.getJSONObject(1).getJSONArray("weatherDesc").getJSONObject(0).getString("value").toLowerCase() +
-				            			" at a minimum of " + weatherForNextDays.getJSONObject(1).getString("tempMinC") + " degrees and a maximum of " +
-				            			weatherForNextDays.getJSONObject(1).getString("tempMaxC") + " degrees celcius. ");
-				            }
-				            else {
-				            	currentConditionText.append("Sorry dude, the weather report for the following day is not available. ");
-				            }
-			            }
-			            else {
-			            	currentConditionText.append("Sorry dude, the weather report for the following two days is not available. ");
-			            }
-			            
-			            currentConditionText.append("Enjoy your day, dude.");
-			            
-			            HashMap<String, String> ttsHash = new HashMap<String, String>();
-			            ttsHash.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_ALARM));
-			            ttsHash.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "WEATHER");
-			            
-			            tts.speak(currentConditionText.toString(), TextToSpeech.QUEUE_FLUSH, ttsHash);
-			        }
-			    } catch (Exception e) {
-			    	e.printStackTrace();
-			    }
-			}
-			
-			private String convertInputStreamToString(InputStream in) {
-				
-				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-			    StringBuilder finalString = new StringBuilder();
-			    String currentLine = null;
-			    
-			    try {
-			        while ((currentLine = reader.readLine()) != null) {
-			        	finalString.append(currentLine + "\n");
-			        }
-			    } catch (IOException e) {
-			        e.printStackTrace();
-			    }
-			    
-			    return finalString.toString();
-			}
-		}
-		
-		private class NewsRequest extends Thread {
-			
-			@Override
-			public void run() {
-				
-				HttpClient client = new DefaultHttpClient();
-				HttpGet getCommand = new HttpGet("url"); 
-				HttpResponse response;
-			    
-			    try {
-			        response = client.execute(getCommand);
-			        HttpEntity entity = response.getEntity();
-			        
-			        Log.i("HTTPResponseStatus",response.getStatusLine().toString());
-			        
-			        if (entity != null) {
-			        	
-			        	InputStream in = entity.getContent();
-			            
-			            String result= convertInputStreamToString(in);
-			            in.close();
-			            
-			            JSONObject newsData = new JSONObject(result);
-			            
-			            
-			            HashMap<String, String> ttsHash = new HashMap<String, String>();
-			            ttsHash.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_ALARM));
-			            ttsHash.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "NEWS");
-			            
-			            tts.speak("This are the news, motherfucker!", TextToSpeech.QUEUE_FLUSH, ttsHash);
-			        }
-			    } catch (Exception e) {
-			    	e.printStackTrace();
-			    }
-			}
-			
-			private String convertInputStreamToString(InputStream in) {
-				
-				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-			    StringBuilder finalString = new StringBuilder();
-			    String currentLine = null;
-			    
-			    try {
-			        while ((currentLine = reader.readLine()) != null) {
-			        	finalString.append(currentLine + "\n");
-			        }
-			    } catch (IOException e) {
-			        e.printStackTrace();
-			    }
-			    
-			    return finalString.toString();
-			}
-		}
-	}
-
-	@SuppressWarnings("deprecation")
-	@Override
-	public void onInit(int stat) {
-		if (stat == TextToSpeech.SUCCESS) {
-            tts.setLanguage(Locale.UK);
-            tts.setOnUtteranceCompletedListener(this);
-		}
-	}
-	
-	@Override
-	public void onUtteranceCompleted(String utteranceID) {
-		
-		if (utteranceID.equals("WEATHER")) {
-			eventScheduler.setEventAudioVolume(previousVolume);
 		}
 	}
 }

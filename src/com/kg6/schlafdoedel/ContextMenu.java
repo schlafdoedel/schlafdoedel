@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import com.kg6.schlafdoedel.custom.SleepingPhaseDialog;
 import com.kg6.schlafdoedel.event.EventScheduler;
 import com.kg6.schlafdoedel.network.BluetoothConnection;
+import com.kg6.schlafdoedel.speechrecognition.InformationRequest;
 
 public class ContextMenu {
 	
@@ -35,11 +36,11 @@ public class ContextMenu {
 				
 				break;
 			case SIMULATE_WEATHER_REQUEST:
-				simulateWeatherRequest();
+				simulateWeatherRequest(context);
 				
 				break;
 			case SIMULATE_NEWS_REQUEST:
-				simulateNewsRequest();
+				simulateNewsRequest(context);
 				
 				break;
 			case CLOSE_APPLICATION:
@@ -55,12 +56,12 @@ public class ContextMenu {
 		dialog.show();
 	}
 	
-	private static void simulateWeatherRequest() {
-		//TODO
+	private static void simulateWeatherRequest(Activity context) {
+		InformationRequest.RequestWeatherInformation(context);
 	}
 	
-	private static void simulateNewsRequest() {
-		//TODO
+	private static void simulateNewsRequest(Activity context) {
+		InformationRequest.RequestWeatherInformation(context);
 	}
 	
 	private static void closeApplication(Activity context) {
