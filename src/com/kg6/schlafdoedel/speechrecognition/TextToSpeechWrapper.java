@@ -71,13 +71,22 @@ public class TextToSpeechWrapper implements OnInitListener, OnUtteranceCompleted
 			textToSpeechThread.setName("Schlafdoedel - text to speech output thread");
 			textToSpeechThread.start();
 		} else {
-			Log.v("InformationRequest.java", "Unable to initialize text to speech");
+			Log.v("TextToSpeechWrapper.java", "Unable to initialize text to speech");
 		}
 	}
 
 	@Override
 	public void onUtteranceCompleted(String utteranceId) {
 		changeMusicVolume(PREVIOUS_AUDIO_VOLUME);
+		
+		try {
+			if(this.textToSpeech != null) {
+				this.textToSpeech.stop();
+				this.textToSpeech.shutdown();
+			}
+		} catch (Exception e) {
+			Log.e("TextToSpeechWrapper.java", "Unable to stop text to speech", e);
+		}
 	}
 	
 	private float getMusicVolume() {

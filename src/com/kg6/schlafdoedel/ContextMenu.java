@@ -82,6 +82,6 @@ public class ContextMenu {
 		
 		Util.RemoveDeviceNotificationEntry(context);
 		
-		System.exit(0);
+		context.finish();
 	}
 }

@@ -86,6 +86,7 @@ public class SpeechRecognition extends Service {
 				Configuration.SPEECH_RECOGNITION_COMMAND_WEATHER,
 				Configuration.SPEECH_RECOGNITION_COMMAND_NEWS,
 				Configuration.SPEECH_RECOGNITION_COMMAND_SLEEP,
+				Configuration.SPEECH_RECOGNITION_COMMAND_NEVER_MIND,
 			};
 			
 			for(String command : availableCommands) {
@@ -167,8 +168,7 @@ public class SpeechRecognition extends Service {
 	
 					break;
 				case Configuration.SPEECH_RECOGNITION_STOP:
-					
-					if (speechRecognition.isListening) {
+					if(speechRecognition.isListening) {
 						speechRecognition.speechRecognizer.stopListening();
 						speechRecognition.speechRecognizer.cancel();
 					}
@@ -253,13 +253,12 @@ public class SpeechRecognition extends Service {
 
 		@Override
 		public void onReadyForSpeech(Bundle params) {
-			
 			if(isServiceEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
 				isCountDownEnabled = true;
 				
 				speechDeactivatedCountdown.start();
 				
-				//audioManager.setStreamMute(AudioManager.STREAM_SYSTEM, false);
+				audioManager.setStreamMute(AudioManager.STREAM_SYSTEM, false);
 			}
 		}
 

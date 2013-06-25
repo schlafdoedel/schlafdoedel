@@ -13,6 +13,7 @@ public class Configuration {
 	
 	public static final String TTS_REQUEST_WEATHER_URL = "http://api.worldweatheronline.com/free/v1/weather.ashx?q=%s&format=json&num_of_days=3&key=95vtwa8kve578cfrjhv2mmnx";
 	public static final String TTS_REQUEST_NEWS_URL = "http://content.guardianapis.com/world?format=json&show-fields=trail-text&edition=UK&order-by=newest";
+	public static final int TTS_NUMBER_OF_NEWS = 3;
 	
 	public static final int EVENT_MAXIMUM_DURATION = Util.GetHourOffset() * 2; //in ms
 	public static final int EVENT_AUTODEFINITION_START_OFFSET = Util.GetHourOffset() * 2; //in ms 
@@ -46,4 +47,5 @@ public class Configuration {
 	public static final String SPEECH_RECOGNITION_COMMAND_WEATHER = "weather";
 	public static final String SPEECH_RECOGNITION_COMMAND_NEWS = "news";
 	public static final String SPEECH_RECOGNITION_COMMAND_SLEEP = "sleep";
+	public static final String SPEECH_RECOGNITION_COMMAND_NEVER_MIND = "never mind";
 }

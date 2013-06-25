@@ -99,9 +99,9 @@ public class InformationRequest {
 				
 				try {
 					JSONArray newsData = new JSONObject(response).getJSONObject("response").getJSONArray("results");
-		            int numberOfNews = 3;
+		            int numberOfNews = Configuration.TTS_NUMBER_OF_NEWS;
 		            
-		            if (newsData.length() < 3) {
+		            if (newsData.length() < numberOfNews) {
 		            	numberOfNews = newsData.length();
 		            }
 					
@@ -123,23 +123,18 @@ public class InformationRequest {
 		requestingThread.start();
 	}
 	
-	public static void RequestSpeech(final Context context, final String requestKey, final String text) {
+	public static void ExecuteTextToSpeech(final Context context, final String requestKey, final String text) {
 		Thread requestingThread = new Thread(new Runnable() {
 
 			@Override
 			public void run() {
-				ExecuteTextToSpeech(context, requestKey, text);
+				TextToSpeechWrapper.Speak(context, requestKey, text);
 			}
 			
 		});
 		
 		requestingThread.setName("Schlafdoedel - Speaking stuff");
 		requestingThread.start();
-	}
-	
-	
-	public static void ExecuteTextToSpeech(Context context, String requestKey, String text) {
-		TextToSpeechWrapper.Speak(context, requestKey, text);
 	}
 	
 	private static String ExecuteRequest(String url) {

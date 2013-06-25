@@ -491,6 +491,8 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 						InformationRequest.RequestWeatherInformation(Overview.this);
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_NEWS) == 0) {
 						InformationRequest.RequestNewsInformation(Overview.this);
+					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_NEVER_MIND) == 0) {
+						InformationRequest.ExecuteTextToSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_NEVER_MIND, "Ok, don't waste my time!");
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_SLEEP) == 0) {
 						if(eventScheduler != null) {
 							eventScheduler.playRelaxingMusic();
@@ -517,7 +519,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			
 			show();
 			
-			InformationRequest.RequestSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED, TITLE);
+			InformationRequest.ExecuteTextToSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED, TITLE);
 		}
 		
 		private void hideSpeechRecognitionSymbol() {
