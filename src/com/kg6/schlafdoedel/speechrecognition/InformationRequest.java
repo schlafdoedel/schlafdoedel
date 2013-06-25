@@ -115,46 +115,52 @@ public class InformationRequest {
 	public static void ExecuteTextToSpeech(final Context context, final String requestKey, final String text) {
 		final float previousEventAudioVolume = GetMusicVolume();
 		
-		ChangeMusicVolume(0);
-		
-        final TextToSpeech tts = new TextToSpeech(context, new OnInitListener() {
+		try {
+			ChangeMusicVolume(0);
 			
-			@Override
-			public void onInit(int status) {
-				if (status != TextToSpeech.SUCCESS) {
-					Log.v("InformationRequest.java", "Unable to initialize text to speech");
-				}
-			}
-			
-		});
-        
-        tts.setOnUtteranceCompletedListener(new OnUtteranceCompletedListener() {
-			
-			@Override
-			public void onUtteranceCompleted(String utteranceId) {
-				if(utteranceId.compareTo(requestKey) != 0) {
-					return;
+	        final TextToSpeech tts = new TextToSpeech(context, new OnInitListener() {
+				
+				@Override
+				public void onInit(int status) {
+					if (status != TextToSpeech.SUCCESS) {
+						Log.v("InformationRequest.java", "Unable to initialize text to speech");
+					}
 				}
 				
-				tts.stop();
-				tts.shutdown();
+			});
+	        
+	        tts.setOnUtteranceCompletedListener(new OnUtteranceCompletedListener() {
 				
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
+				@Override
+				public void onUtteranceCompleted(String utteranceId) {
+					if(utteranceId.compareTo(requestKey) != 0) {
+						return;
+					}
 					
+					tts.stop();
+					tts.shutdown();
+					
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						
+					}
+			        
+			        ChangeMusicVolume(previousEventAudioVolume);
 				}
-		        
-		        ChangeMusicVolume(previousEventAudioVolume);
-			}
-		});
-        
-        HashMap<String, String> ttsHash = new HashMap<String, String>();
-        ttsHash.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_ALARM));
-        ttsHash.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, requestKey);
-        
-        tts.setLanguage(Locale.UK);
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, ttsHash);
+			});
+	        
+	        HashMap<String, String> ttsHash = new HashMap<String, String>();
+	        ttsHash.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_ALARM));
+	        ttsHash.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, requestKey);
+	        
+	        tts.setLanguage(Locale.UK);
+	        tts.speak(text, TextToSpeech.QUEUE_FLUSH, ttsHash);
+		} catch (Exception e) {
+			Log.e("InformationRequest.java", "Unable to execute text to speech", e);
+			
+			ChangeMusicVolume(previousEventAudioVolume);
+		}
 	}
 	
 	private static void ChangeMusicVolume(float volume) {

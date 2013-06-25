@@ -13,7 +13,7 @@ public class Configuration {
 	
 	public static final int EVENT_MAXIMUM_DURATION = Util.GetHourOffset() * 2; //in ms
 	public static final int EVENT_AUTODEFINITION_START_OFFSET = Util.GetHourOffset() * 2; //in ms 
-	public static final int EVENT_AUTODEFINITION_END_OFFSET = EVENT_AUTODEFINITION_START_OFFSET + Util.GetMinuteOffset() * 30; //in ms 
+	public static final int EVENT_AUTODEFINITION_END_DURATION = Util.GetMinuteOffset() * 30; //in ms 
 	public static final EventSource EVENT_AUTODEFINITION_DEFAULT_SOURCE = new EventSource(SourceType.Music, "http://onair.krone.at/kronehit.mp3");
 	
 	public static final float WINDOW_MAX_BRIGHTNESS = 0.8f;

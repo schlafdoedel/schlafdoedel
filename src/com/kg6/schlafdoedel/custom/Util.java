@@ -87,7 +87,7 @@ public class Util {
 	}
 	
 	public static int GetMinuteOfTimestamp(long timestamp) {
-		return (int)(timestamp / GetMinuteOffset());
+		return (int)(timestamp / GetMinuteOffset()) - GetHourOfTimestamp(timestamp) * 60;
 	}
 	
 	public static int GetNumberOfWeekdays() {
