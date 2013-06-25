@@ -13,7 +13,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -56,7 +55,6 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	private EventListPanel eventListPanel;
 	
 	private SpeechRecognitionDialog speechRecognitionDialog;
-	private TextToSpeech tts;
 	
 	private HashMap<Integer, View> availableStatusTabsHash;
 	
@@ -109,10 +107,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
     protected void onDestroy() {
     	stopService(new Intent(this, SpeechRecognition.class));
     	
-    	if (tts != null) {
-            tts.stop();
-            tts.shutdown();
-        }
+    	super.onDestroy();
     }
 
 	private void createTestEvents() {
