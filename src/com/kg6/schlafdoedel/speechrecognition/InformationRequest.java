@@ -17,7 +17,7 @@ import android.util.Log;
 
 import com.kg6.schlafdoedel.Configuration;
 
-public class InformationRequest implements OnInitListener {
+public class InformationRequest {
 
 	public static void RequestWeatherInformation(final Activity context) {
 		Thread requestingThread = new Thread(new Runnable() {
@@ -160,11 +160,5 @@ public class InformationRequest implements OnInitListener {
 	    }
 	    
 	    return null;
-	}
-
-	@Override
-	public void onInit(int arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 }
