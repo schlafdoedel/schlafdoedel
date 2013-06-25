@@ -17,6 +17,14 @@ public class Configuration {
 	public static final int EVENT_AUTODEFINITION_END_DURATION = Util.GetMinuteOffset() * 30; //in ms 
 	public static final EventSource EVENT_AUTODEFINITION_DEFAULT_SOURCE = new EventSource(SourceType.Music, "http://onair.krone.at/kronehit.mp3");
 	
+	public static final String[] EVENT_RELAXING_MUSIC_SOURCES = new String[] {
+		"http://sio.midco.net/inash/classical%20-%20jim%20brickman%20-%20relaxing%20piano%20music.mp3",
+		"http://www.weebly.com/uploads/7/9/5/1/7951137/relaxing_music_hd_-_relaxing_piano_4_romantic_music_ocean_instrumental_classical_songs_relax_slow_jazz_hd_video_1080p_.mp3",
+		"http://www.kingoffancy.com/music/01.mp3",
+		"http://a.tumblr.com/tumblr_lz5lrx0FPi1qkdcr2o1.mp3",
+		"http://www.arryduniafotografi.com/wp-content/uploads/2011/08/Relaxing-Music-Instrumental-Piano-.mp3",
+	};
+	
 	public static final float WINDOW_MAX_BRIGHTNESS = 0.8f;
 	public static final float WINDOW_MIN_BRIGHTNESS = 0f;
 	
@@ -33,4 +41,5 @@ public class Configuration {
 	public static final String SPEECH_RECOGNITION_COMMAND_DEACTIVATED = "deactivated";
 	public static final String SPEECH_RECOGNITION_COMMAND_WEATHER = "weather";
 	public static final String SPEECH_RECOGNITION_COMMAND_NEWS = "news";
+	public static final String SPEECH_RECOGNITION_COMMAND_SLEEP = "sleep";
 }

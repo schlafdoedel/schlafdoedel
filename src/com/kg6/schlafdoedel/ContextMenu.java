@@ -17,6 +17,7 @@ public class ContextMenu {
 		SIMULATE_SLEEPING_PHASES,
 		SIMULATE_WEATHER_REQUEST,
 		SIMULATE_NEWS_REQUEST,
+		SIMULATE_RELAXING_MUSIC,
 		CLOSE_APPLICATION
 	};
 	
@@ -24,6 +25,7 @@ public class ContextMenu {
 		menu.add(0, ContextMenuOptions.SIMULATE_SLEEPING_PHASES.ordinal(), ContextMenuOptions.SIMULATE_SLEEPING_PHASES.ordinal(), "Simulate sleeping phases");
 		menu.add(0, ContextMenuOptions.SIMULATE_WEATHER_REQUEST.ordinal(), ContextMenuOptions.SIMULATE_WEATHER_REQUEST.ordinal(), "Simulate weather request");
 		menu.add(0, ContextMenuOptions.SIMULATE_NEWS_REQUEST.ordinal(), ContextMenuOptions.SIMULATE_NEWS_REQUEST.ordinal(), "Simulate news request");
+		menu.add(0, ContextMenuOptions.SIMULATE_RELAXING_MUSIC.ordinal(), ContextMenuOptions.SIMULATE_RELAXING_MUSIC.ordinal(), "Simulate relaxing music");
 		menu.add(0, ContextMenuOptions.CLOSE_APPLICATION.ordinal(), ContextMenuOptions.CLOSE_APPLICATION.ordinal(), "Close");
 	}
 	
@@ -41,6 +43,10 @@ public class ContextMenu {
 				break;
 			case SIMULATE_NEWS_REQUEST:
 				simulateNewsRequest(context);
+				
+				break;
+			case SIMULATE_RELAXING_MUSIC:
+				simulateRelaxingMusic(context);
 				
 				break;
 			case CLOSE_APPLICATION:
@@ -62,6 +68,14 @@ public class ContextMenu {
 	
 	private static void simulateNewsRequest(Activity context) {
 		InformationRequest.RequestWeatherInformation(context);
+	}
+	
+	private static void simulateRelaxingMusic(Activity context) {
+		EventScheduler eventScheduler = EventScheduler.CreateInstance();
+		
+		if(eventScheduler != null) {
+			eventScheduler.playRelaxingMusic();
+		}
 	}
 	
 	private static void closeApplication(Activity context) {
