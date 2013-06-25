@@ -2,13 +2,12 @@ package com.kg6.schlafdoedel;
 
 import android.app.Activity;
 import android.content.Context;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.kg6.schlafdoedel.custom.SleepingPhaseDialog;
+import com.kg6.schlafdoedel.custom.Util;
 import com.kg6.schlafdoedel.event.EventScheduler;
-import com.kg6.schlafdoedel.network.BluetoothConnection;
 import com.kg6.schlafdoedel.speechrecognition.InformationRequest;
 
 public class ContextMenu {
@@ -79,21 +78,9 @@ public class ContextMenu {
 	}
 	
 	private static void closeApplication(Activity context) {
-		try {
-			BluetoothConnection bluetoothConnection = BluetoothConnection.CreateInstance(context);
-			
-			bluetoothConnection.cleanup();
-		} catch (Exception e) {
-			Log.e("ContextMenu.java", "Unable to cleanup the Bluetooth connection", e);
-		}
+		Util.CleanupApplication(context);
 		
-		try {
-			EventScheduler eventScheduler = EventScheduler.CreateInstance(context, null);
-			
-			eventScheduler.cleanup();
-		} catch (Exception e) {
-			Log.e("ContextMenu.java", "Unable to cleanup the EventScheduler", e);
-		}
+		Util.RemoveDeviceNotificationEntry(context);
 		
 		System.exit(0);
 	}

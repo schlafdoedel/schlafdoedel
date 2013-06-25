@@ -5,6 +5,8 @@ import com.kg6.schlafdoedel.event.EventSource;
 import com.kg6.schlafdoedel.event.EventSource.SourceType;
 
 public class Configuration {
+	public static final int NOTIFICATION_ID = 999;
+	
 	public static final String COMMAND_SLEEPING_PHASE_AWAKE = "COMMAND_SLEEPING_PHASE_AWAKE";
 	public static final String COMMAND_SLEEPING_PHASE_DEEP = "COMMAND_SLEEPING_PHASE_DEEP";
 	public static final String COMMAND_SLEEPING_PHASE_SHALLOW = "COMMAND_SLEEPING_PHASE_SHALLOW";

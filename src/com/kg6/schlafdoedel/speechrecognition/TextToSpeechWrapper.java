@@ -41,13 +41,35 @@ public class TextToSpeechWrapper implements OnInitListener, OnUtteranceCompleted
 	@Override
 	public void onInit(int status) {
 		if (status == TextToSpeech.SUCCESS) {
-			this.textToSpeech.setLanguage(Locale.UK);
+			Thread textToSpeechThread = new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						while(textToSpeech == null) {
+							try {
+								Thread.sleep(10);
+							} catch (Exception e) {
+								
+							}
+						}
+						
+						textToSpeech.setLanguage(Locale.UK);
+						
+						HashMap<String, String> ttsHash = new HashMap<String, String>();
+				        ttsHash.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_ALARM));
+				        ttsHash.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, REQUEST_KEY);
+						
+						textToSpeech.speak(TEXT, TextToSpeech.QUEUE_FLUSH, ttsHash);
+					} catch (Exception e) {
+						Log.e("TextToSpeechWrapper.java", "Unable to execute text to speech", e);
+					}
+				}
+				
+			});
 			
-			HashMap<String, String> ttsHash = new HashMap<String, String>();
-	        ttsHash.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_ALARM));
-	        ttsHash.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, REQUEST_KEY);
-			
-			this.textToSpeech.speak(TEXT, TextToSpeech.QUEUE_FLUSH, ttsHash);
+			textToSpeechThread.setName("Schlafdoedel - text to speech output thread");
+			textToSpeechThread.start();
 		} else {
 			Log.v("InformationRequest.java", "Unable to initialize text to speech");
 		}

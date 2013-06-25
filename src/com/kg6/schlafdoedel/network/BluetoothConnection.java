@@ -64,6 +64,8 @@ public class BluetoothConnection extends NetworkConnection {
 	public void cleanup() {
 		this.enabled = false;
 		
+		bluetoothConnection = null;
+		
 		try {
 			if(this.server != null) {
 				this.server.interrupt();
