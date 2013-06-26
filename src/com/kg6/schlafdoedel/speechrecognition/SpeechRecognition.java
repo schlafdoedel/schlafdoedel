@@ -9,7 +9,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -136,6 +135,16 @@ public class SpeechRecognition extends Service {
 	public IBinder onBind(Intent intent) {
 		return null;
 	}
+	
+	private void setStreamSoundMuteState(boolean mute) {
+		try {
+			if(this.audioManager != null) {
+				this.audioManager.setStreamMute(AudioManager.STREAM_SYSTEM, mute);
+			}
+		} catch (Exception e) {
+			Log.e("SpeechRecognition.java", "Unable to change stream mute state", e);
+		}
+	}
 
 	private static class IncomingHandler extends Handler {
 		private WeakReference<SpeechRecognition> speechReconitionReference;
@@ -154,9 +163,7 @@ public class SpeechRecognition extends Service {
 
 			switch (msg.what) {
 				case Configuration.SPEECH_RECOGNITION_START:
-					if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-						speechRecognition.audioManager.setStreamMute(AudioManager.STREAM_SYSTEM, true);
-					}
+					speechRecognition.setStreamSoundMuteState(true);
 					
 					if(!speechRecognition.isListening) {
 						speechRecognition.speechRecognizer.startListening(speechRecognition.speechRecognizerIntent);
@@ -253,12 +260,12 @@ public class SpeechRecognition extends Service {
 
 		@Override
 		public void onReadyForSpeech(Bundle params) {
-			if(isServiceEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+			if(isServiceEnabled) {
 				isCountDownEnabled = true;
 				
 				speechDeactivatedCountdown.start();
 				
-				audioManager.setStreamMute(AudioManager.STREAM_SYSTEM, false);
+				setStreamSoundMuteState(false);
 			}
 		}
 
