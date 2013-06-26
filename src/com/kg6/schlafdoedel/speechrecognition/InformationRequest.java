@@ -8,8 +8,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Context;
@@ -30,52 +28,7 @@ public class InformationRequest {
 					return;
 				}
 				
-				StringBuilder currentConditionTextBuilder = new StringBuilder();
-				
-				try {
-					JSONObject weatherData = new JSONObject(response);
-		            JSONObject data = weatherData.getJSONObject("data");
-		            JSONObject currentCondition = data.getJSONArray("current_condition").getJSONObject(0);
-		            JSONArray weatherForNextDays = data.getJSONArray("weather");
-		            
-		            currentConditionTextBuilder.append("The current condition is ");
-		            currentConditionTextBuilder.append(currentCondition.getJSONArray("weatherDesc").getJSONObject(0).getString("value"));
-		            currentConditionTextBuilder.append(" at ");
-		            currentConditionTextBuilder.append(currentCondition.getString("temp_C"));
-		            currentConditionTextBuilder.append(" degrees celcius. ");
-		            
-		            if (weatherForNextDays.length() > 0) {
-		            	currentConditionTextBuilder.append("The current forecast for tomorrow is ");
-		            	currentConditionTextBuilder.append(weatherForNextDays.getJSONObject(0).getJSONArray("weatherDesc").getJSONObject(0).getString("value"));
-		            	currentConditionTextBuilder.append(" at a minimum of ");
-		            	currentConditionTextBuilder.append(weatherForNextDays.getJSONObject(0).getString("tempMinC"));
-		            	currentConditionTextBuilder.append(" degrees and a maximum of ");
-		            	currentConditionTextBuilder.append(weatherForNextDays.getJSONObject(0).getString("tempMaxC"));
-		            	currentConditionTextBuilder.append(" degrees celcius. ");
-		            	
-		            	if (weatherForNextDays.length() > 1) {
-		            		currentConditionTextBuilder.append("And finally, the current forecast for the day after tomorrow is ");
-		            		currentConditionTextBuilder.append(weatherForNextDays.getJSONObject(1).getJSONArray("weatherDesc").getJSONObject(0).getString("value"));
-		            		currentConditionTextBuilder.append(" at a minimum of ");
-		            		currentConditionTextBuilder.append(weatherForNextDays.getJSONObject(1).getString("tempMinC"));
-		            		currentConditionTextBuilder.append(" degrees and a maximum of ");
-		            		currentConditionTextBuilder.append(weatherForNextDays.getJSONObject(1).getString("tempMaxC"));
-		            		currentConditionTextBuilder.append(" degrees celcius. ");
-			            }
-			            else {
-			            	currentConditionTextBuilder.append("Sorry dude, the weather report for the following day is not available. ");
-			            }
-		            }
-		            else {
-		            	currentConditionTextBuilder.append("Sorry dude, the weather report for the following two days is not available. ");
-		            }
-		            
-		            currentConditionTextBuilder.append("Enjoy your day, dude.");
-				} catch (Exception e) {
-					Log.e("InformationRequest.java", "Unable to parse weather JSON response", e);
-				}
-				
-				ExecuteTextToSpeech(context, "WEATHER", currentConditionTextBuilder.toString());
+				ExecuteTextToSpeech(context, "WEATHER", Messaging.GetCommandWeatherMessage(response));
 			}
 			
 		});
@@ -94,27 +47,8 @@ public class InformationRequest {
 				if(response == null) {
 					return;
 				}
-				
-				StringBuilder newsTextBuilder = new StringBuilder();
-				
-				try {
-					JSONArray newsData = new JSONObject(response).getJSONObject("response").getJSONArray("results");
-		            int numberOfNews = Configuration.TTS_NUMBER_OF_NEWS;
-		            
-		            if (newsData.length() < numberOfNews) {
-		            	numberOfNews = newsData.length();
-		            }
-					
-		            for (int i = 0; i < numberOfNews; i++) {
-		            	newsTextBuilder.append(newsData.getJSONObject(i).getString("webTitle") + ". ");
-		            	newsTextBuilder.append(newsData.getJSONObject(i).getJSONObject("fields").getString("trailText").replaceAll("<.*>", "") + ". ");
-		            }
-		            
-				} catch (Exception e) {
-					Log.e("InformationRequest.java", "Unable to parse weather JSON response", e);
-				}
-				
-				ExecuteTextToSpeech(context, "NEWS", newsTextBuilder.toString());
+
+				ExecuteTextToSpeech(context, "NEWS", Messaging.GetCommandNewsMessage(response));
 			}
 			
 		});

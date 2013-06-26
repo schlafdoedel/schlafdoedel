@@ -47,6 +47,7 @@ public class Configuration {
 	public static final String SPEECH_RECOGNITION_ACTIVATION_PHRASE = "dude";
 	public static final String SPEECH_RECOGNITION_COMMAND_ACTIVATED = "activated";
 	public static final String SPEECH_RECOGNITION_COMMAND_DEACTIVATED = "deactivated";
+	public static final String SPEECH_RECOGNITION_COMMAND_UNKNOWN = "unknown";
 	public static final String SPEECH_RECOGNITION_COMMAND_WEATHER = "weather";
 	public static final String SPEECH_RECOGNITION_COMMAND_NEWS = "news";
 	public static final String SPEECH_RECOGNITION_COMMAND_SLEEP = "sleep";

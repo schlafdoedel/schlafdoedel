@@ -43,6 +43,7 @@ import com.kg6.schlafdoedel.network.NetworkConnection;
 import com.kg6.schlafdoedel.network.NetworkConnection.ConnectionType;
 import com.kg6.schlafdoedel.network.NetworkEvent;
 import com.kg6.schlafdoedel.speechrecognition.InformationRequest;
+import com.kg6.schlafdoedel.speechrecognition.Messaging;
 import com.kg6.schlafdoedel.speechrecognition.SpeechRecognition;
 
 @SuppressLint("UseSparseArrays")
@@ -450,8 +451,6 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	}
 	
 	public class SpeechRecognitionDialog extends Dialog {
-		final String TITLE = "How can I help you, master?";
-		
 		private BroadcastReceiver broadcastReceiver;
 		
 		private LinearLayout contentContainerLayout;
@@ -466,8 +465,6 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 		}
 		
 		private void initializeControls() {
-			setTitle(TITLE);
-			
 			this.contentContainerLayout = new LinearLayout(getContext());
 			this.contentContainerLayout.setOrientation(LinearLayout.VERTICAL);
 			
@@ -492,12 +489,18 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_NEWS) == 0) {
 						InformationRequest.RequestNewsInformation(Overview.this);
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_NEVER_MIND) == 0) {
-						InformationRequest.ExecuteTextToSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_NEVER_MIND, "Ok, don't waste my time!");
+						final String message = Messaging.GetCommandNeverMindMessage();
+						
+						InformationRequest.ExecuteTextToSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_NEVER_MIND, message);
 					} else if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_SLEEP) == 0) {
 						if(eventScheduler != null) {
 							eventScheduler.playRelaxingMusic();
 						}
 					} else {
+						final String message = Messaging.GetCommandUnknownMessage();
+						
+						InformationRequest.ExecuteTextToSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_UNKNOWN, message);
+						
 						Toast.makeText(Overview.this, String.format("Command %s can not be handled", command), Toast.LENGTH_SHORT).show();
 					}
 				}
@@ -517,9 +520,12 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 			this.contentContainerLayout.removeAllViews();
 			this.contentContainerLayout.addView(this.avatarImageView, avatarImageParams);
 			
-			show();
+			final String title = Messaging.GetCommandActivatedMessage();
 			
-			InformationRequest.ExecuteTextToSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED, TITLE);
+			setTitle(title);
+			InformationRequest.ExecuteTextToSpeech(Overview.this, Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED, title);
+			
+			show();
 		}
 		
 		private void hideSpeechRecognitionSymbol() {
