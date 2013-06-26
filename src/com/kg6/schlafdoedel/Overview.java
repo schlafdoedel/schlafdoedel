@@ -145,16 +145,22 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode == RESULT_OK && data != null) {
+			final String path = Util.GetAbsoluteFilePath(this, data.getData());
+			
+			if(path == null) {
+				return;
+			}
+			
 			switch (requestCode) {
 				case Configuration.FILE_CHOOSER_MUSIC_RESPONSE_CODE:
 					if (eventDefinitionDialog != null) {
-						eventDefinitionDialog.setMusicSource(data.getData().toString());
+						eventDefinitionDialog.setMusicSource(path);
 					}
 	
 					break;
 				case Configuration.FILE_CHOOSER_IMAGE_RESPONSE_CODE:
 					if (eventDefinitionDialog != null) {
-						eventDefinitionDialog.setImageSource(data.getData().toString());
+						eventDefinitionDialog.setImageSource(path);
 					}
 	
 					break;

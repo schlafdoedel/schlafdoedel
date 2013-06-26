@@ -1,5 +1,6 @@
 package com.kg6.schlafdoedel.event;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -248,7 +249,13 @@ public class EventExecutor extends Thread {
         InputStream inputStream = null;
         
         try {
-        	inputStream = new URL(source.getUrl()).openStream();
+        	final String url = source.getUrl();
+        	
+        	if(url.startsWith("http://") || url.startsWith("https://")) {
+        		inputStream = new URL(url).openStream();
+        	} else {
+        		inputStream = new FileInputStream(url);
+        	}
         	
         	//Load the bitmap
         	loadedBitmap = BitmapFactory.decodeStream(inputStream);

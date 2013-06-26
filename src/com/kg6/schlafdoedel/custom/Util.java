@@ -18,7 +18,10 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Point;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.WindowManager;
 
@@ -191,6 +194,40 @@ public class Util {
 		} catch (Exception e) {
 			Log.e("Util.java", "Unable to remove device notification", e);
 		}
+	}
+	
+	public static String GetAbsoluteFilePath(Activity context, Uri uri) {
+		if(uri.getScheme().equalsIgnoreCase("content")) {
+	        String[] projection = new String[] { MediaStore.Images.Media.DATA };
+	        
+	        Cursor cursor = null;
+
+	        try {
+	            cursor = context.getContentResolver().query(uri, projection, null, null, null);
+	            
+	            final int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+	            
+	            if(cursor.moveToFirst()) {
+	                return cursor.getString(column_index);
+	            }
+	        } catch (Exception e) {
+	            Log.e("Util.java", "Unable to get absolute path for URI", e);
+	        } finally {
+	        	try {
+	        		cursor.close();
+	        	} catch  (Exception e) {
+	        		
+	        	}
+	        }
+	    } else {
+	    	try {
+	    		return uri.getPath();
+			} catch (Exception e) {
+				Log.e("Util.java", "Unable to get absolute path for URI", e);
+			}
+	    }  
+		
+		return null;
 	}
 	
 	public static void CleanupApplication(Activity context) {

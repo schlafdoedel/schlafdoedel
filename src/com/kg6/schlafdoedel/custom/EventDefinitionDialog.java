@@ -412,7 +412,7 @@ public class EventDefinitionDialog extends Dialog {
 					event.addEventSource(new EventSource(SourceType.Music, eventMusicSource));
 				}
 				
-				if(eventMusicSource.length() > 0) {
+				if(eventImageSource.length() > 0) {
 					event.addEventSource(new EventSource(SourceType.Image, eventImageSource));
 				}
 				
