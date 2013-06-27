@@ -271,7 +271,7 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 
 			@Override
 			public void onClick(View v) {
-				if (bluetoothConnection.isConnected()) {
+				if (bluetoothConnection.isClientConnected()) {
 					bluetoothConnection.disconnectFromServer();
 				} else {
 					bluetoothConnection.connectToServer();
@@ -484,6 +484,10 @@ public class Overview extends Activity implements NetworkEvent, EventNotificatio
 				
 				@Override
 				public void onReceive(Context context, Intent intent) {
+					if(bluetoothConnection != null && bluetoothConnection.isClientConnected()) {
+						return;
+					}
+					
 					final String command = intent.getStringExtra("command");
 					
 					if(command.compareTo(Configuration.SPEECH_RECOGNITION_COMMAND_ACTIVATED) == 0) {

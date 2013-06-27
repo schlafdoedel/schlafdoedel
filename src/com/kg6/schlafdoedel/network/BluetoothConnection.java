@@ -125,7 +125,7 @@ public class BluetoothConnection extends NetworkConnection {
 		}
 	}
 	
-	public boolean isConnected() {
+	public boolean isClientConnected() {
 		if(this.client != null) {
 			return this.client.isConnected();
 		}
@@ -515,7 +515,7 @@ public class BluetoothConnection extends NetworkConnection {
 				
 				@Override
 				public void onDismiss(DialogInterface dialog) {
-					if(!isConnected()) {
+					if(!isClientConnected()) {
 						disconnectFromServer();
 					}
 				}
